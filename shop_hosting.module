@@ -24,16 +24,39 @@ function shop_hosting_nodeapi_server_load(&$node){
     $ssh_keys[] = $key->value;
   }
   $node->attributes->aegir['authorized_keys'] = implode("\n", $ssh_keys);
+  
+  // Add devudo users
+  // Any users with role "administrator"
+  $admin_role = variable_get('shop_server_admin_role', 'administrator');
+  $admins = db_query('SELECT u.name, u.uid FROM users u LEFT JOIN users_roles ur on u.uid = ur.uid LEFT JOIN role r ON ur.rid = r.rid WHERE r.name = "%s" OR u.uid = 1', $admin_role);
+  while ($account = db_fetch_object($admins)){
+    $node->attributes->devudo['users'][$account->uid] = $account->name;
+  }
+  
+  // @TODO: Allow tracking of users to grant account
+  $node->attributes->devudo['users'][$node->uid] = $node->name;
+
 }
 
 function shop_hosting_nodeapi_server_view(&$node){
   
   foreach ($node->attributes as $name => $value) {
-    $node->content['info']['attributes'] = array(
-      '#type' => 'item',
-      '#title' => $name,
-      '#value' => json_encode($value),
-    );  
+    if (is_array($value)){
+      foreach($value as $sub_name => $sub_value){
+        $node->content['info']['attributes'][$sub_name] = array(
+          '#type' => 'item',
+          '#title' => "$name:$sub_name",
+          '#value' => json_encode($sub_value),
+        );  
+      }
+    } elseif (is_string($value)) {
+      $node->content['info']['attributes'] = array(
+        '#type' => 'item',
+        '#title' => $name,
+        '#value' => json_encode($value),
+      ); 
+    }
+    
   }
   
 }
