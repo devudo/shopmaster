@@ -3,3 +3,4 @@ description = Tools for shop.devudo.com
 core = 6.x
 package = Devudo
 dependencies[] = hosting
+dependencies[] = sshkey
