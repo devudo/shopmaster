@@ -22,7 +22,7 @@ function drush_shop_provision_pre_hosting_task() {
     $attributes = $task->ref->attributes;
     $json_path = "/tmp/$server.json";
     
-    drush_log("[DEVUDO SHOPMASTER] Verifying $server",'notice');
+    drush_log("[DEVUDO SHOPMASTER] Adding attributes to $server",'notice');
     
     // Get chef node data
     drush_shell_exec("knife node show $server -l -Fj");
@@ -31,7 +31,6 @@ function drush_shop_provision_pre_hosting_task() {
 
     // Alter chef normal attributes
     $chef_node->normal = $attributes;
-    drush_log(print_r($chef_node->override, 1),'notice');
     
     // Save new json data to file
     $chef_node_string = json_encode($chef_node);
