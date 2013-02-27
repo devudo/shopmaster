@@ -43,5 +43,7 @@ function drush_shop_provision_pre_hosting_task() {
     $message = implode($message);
     drush_log("[DEVUDO SHOPMASTER] From Chef: $message",'notice');
     
+    // @TODO: Still needs chef-client to run recipes with new attributes.
+    
   }
 }
