@@ -25,3 +25,15 @@ function shop_hosting_nodeapi_server_load(&$node){
   }
   $node->attributes->aegir['authorized_keys'] = implode("\n", $ssh_keys);
 }
+
+function shop_hosting_nodeapi_server_view(&$node){
+  
+  foreach ($node->attributes as $name => $value) {
+    $node->content['info']['attributes'] = array(
+      '#type' => 'item',
+      '#title' => $name,
+      '#value' => json_encode($value),
+    );  
+  }
+  
+}
