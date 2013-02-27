@@ -1,0 +1,27 @@
+<?php
+/**
+ */
+
+/**
+ * Implements hook_form_alter().
+ */
+function shop_hosting_form_alter(&$form, &$form_state, $form_id){
+
+}
+
+function shop_hosting_hosting_tasks_alter(&$tasks) {
+}
+
+
+function shop_hosting_nodeapi_server_load(&$node){
+  
+  // Build attributes object
+  $node->attributes = new stdClass;
+
+  // Get authorized SSH keys
+  $keys = sshkey_load_all_by_entity('user', $node->uid); 
+  foreach ($keys as $key){
+    $ssh_keys[] = $key->value;
+  }
+  $node->attributes->aegir['authorized_keys'] = implode("\n", $ssh_keys);
+}
