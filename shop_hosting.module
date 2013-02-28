@@ -10,6 +10,19 @@ function shop_hosting_form_alter(&$form, &$form_state, $form_id){
 }
 
 function shop_hosting_hosting_tasks_alter(&$tasks) {
+  
+}
+function shop_hosting_hosting_tasks() {
+  $tasks = array(
+    'server' => array(
+      'delete' => array(
+        'title' => t('Delete'), 
+        'description' => t('Destroy this server.'), 
+        'dialog' => TRUE,
+      ),
+    ),
+  );
+  return $tasks;
 }
 
 
