@@ -18,23 +18,24 @@ function shop_hosting_nodeapi_server_load(&$node){
   // Build attributes object
   $node->attributes = new stdClass;
 
-  // Get authorized SSH keys
-  $keys = sshkey_load_all_by_entity('user', $node->uid); 
-  foreach ($keys as $key){
-    $ssh_keys[] = $key->value;
+  // Add server users: any users with role "administrator"
+  $admin_role = variable_get('shop_server_admin_role', 'administrator');
+  $admins = db_query('SELECT u.name, u.uid FROM users u LEFT JOIN users_roles ur on u.uid = ur.uid LEFT JOIN role r ON ur.rid = r.rid WHERE r.name = "%s" OR u.uid = 1 OR u.uid = %d', $admin_role, $node->uid);
+  while ($account = db_fetch_object($admins)){
+    $keys = sshkey_load_all_by_entity('user', $node->uid);
+    $account->ssh_keys = array();
+    foreach ($keys as $key){
+      $ssh_keys[] = $key->value;
+      $account->ssh_keys[] = $key->value;
+    }
+    // Adding each users authorized key.
+    $node->attributes->devudo['users'][$account->name] = implode("\n", $account->ssh_keys);
   }
+  
+  // Authorized Keys to add to aegir user
   $node->attributes->aegir['authorized_keys'] = implode("\n", $ssh_keys);
   
-  // Add devudo users
-  // Any users with role "administrator"
-  $admin_role = variable_get('shop_server_admin_role', 'administrator');
-  $admins = db_query('SELECT u.name, u.uid FROM users u LEFT JOIN users_roles ur on u.uid = ur.uid LEFT JOIN role r ON ur.rid = r.rid WHERE r.name = "%s" OR u.uid = 1', $admin_role);
-  while ($account = db_fetch_object($admins)){
-    $node->attributes->devudo['users'][$account->uid] = $account->name;
-  }
-  
   // @TODO: Allow tracking of users to grant account
-  $node->attributes->devudo['users'][$node->uid] = $node->name;
 
 }
 
