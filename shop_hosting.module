@@ -48,22 +48,25 @@ function shop_hosting_nodeapi_server_load(&$node){
     $node->attributes->devudo['users'][$account->name] = implode("\n", $account->ssh_keys);
   }
   
-  // Authorized Keys to add to aegir user
-  $node->attributes->aegir['authorized_keys'] = implode("\n", $ssh_keys);
   
   // Add this servers public key to devudo user.
   // To set this, run 
   $node->attributes->devudo['users']['devudo'] = variable_get('shopmaster_ssh_public_key', '');
+
+  // Authorized Keys to add to aegir user
+  // @TODO: Figure out who should have direct access... maybe no one.
+  //$node->attributes->aegir['authorized_keys'] = implode("\n", $ssh_keys);
   
   // @TODO: Allow tracking of users to grant account
 
 }
 
 /**
- *
+ * Implements hook_nodeapi_TYPE_OP()
  */
 function shop_hosting_nodeapi_server_view(&$node){
   
+  // Rough display of attributes.
   foreach ($node->attributes as $name => $value) {
     if (is_array($value)){
       foreach($value as $sub_name => $sub_value){
@@ -77,7 +80,7 @@ function shop_hosting_nodeapi_server_view(&$node){
       $node->content['attributes'] = array(
         '#type' => 'item',
         '#title' => $name,
-        '#value' => json_encode($value),
+        '#value' => $value,
       ); 
     }
     
