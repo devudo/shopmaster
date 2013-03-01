@@ -32,7 +32,9 @@ function drush_shop_provision_pre_hosting_task() {
     $server_fqdn = $task->ref->title;
     
     // If it has been created already:
-    drush_shell_exec("knife node show $server_fqdn -a ipaddress -Fj");
+    $command = "knife node show $server_fqdn -a ipaddress -Fj";
+    drush_log("[DEVUDO] Running: $command");
+    drush_shell_exec($command);
     $server_node_data = drush_shell_exec_output();
     $server_node_data = json_decode(implode($server_node_data));
     
