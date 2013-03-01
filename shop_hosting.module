@@ -25,7 +25,9 @@ function shop_hosting_hosting_tasks() {
   return $tasks;
 }
 
-
+/**
+ * Load attributes into our server node here.
+ */
 function shop_hosting_nodeapi_server_load(&$node){
   
   // Build attributes object
@@ -48,10 +50,17 @@ function shop_hosting_nodeapi_server_load(&$node){
   // Authorized Keys to add to aegir user
   $node->attributes->aegir['authorized_keys'] = implode("\n", $ssh_keys);
   
+  // Add this servers public key to devudo user.
+  // To set this, run 
+  $node->attributes->devudo['users']['devudo'] = variable_get('shopmaster_ssh_public_key', '');
+  
   // @TODO: Allow tracking of users to grant account
 
 }
 
+/**
+ *
+ */
 function shop_hosting_nodeapi_server_view(&$node){
   
   foreach ($node->attributes as $name => $value) {
@@ -72,5 +81,25 @@ function shop_hosting_nodeapi_server_view(&$node){
     }
     
   }
+  
+  // SHOW TIP IF PUBLIC KEY IS NOT AVAILABLE
+  // Display helpful tips for connecting.
+  $pubkey = variable_get('shopmaster_ssh_public_key', '');
+  
+  // If we don't yet have the server's public key saved as a variable...
+  if (empty($pubkey)){
+    $output = t("Please save this server's public key to a variable.  On your server, run the following command and then reload this page..");
+    $command = 'drush @hostmaster vset shopmaster_ssh_public_key "$(cat ~/.ssh/id_rsa.pub)" --yes';
+
+    $output .= "<div class='command'><input size='160' value='$command' onclick='this.select()' /></div>";
+  } else {
+    $output = t('Ready');
+  }
+  
+   $node->content['connect'] = array(
+    '#type' => 'item',
+    '#title' => t('Shopmaster Access'),
+    '#description' => $output,
+  );
   
 }
