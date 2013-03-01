@@ -11,6 +11,21 @@
 function drush_shop_provision_pre_hosting_task() {
   // Get Hostmaster Task object
   $task =& drush_get_context('HOSTING_TASK');
+  // NOT READY YET
+  //// On server delete, run the commands 
+  //if ($task->ref->type == 'server' && $task->task_type == 'delete') {
+  //  drush_log("[DEVUDO SHOPMASTER] DELETINGSERVER");
+  //  $server_fqdn = $task->ref->title;
+  //  $server_id = $task->rackspace_server_id;
+  //  $cmd = "knife rackspace server delete $server_id -P";
+  //  drush_log("[DEVUDO SHOPMASTER] Running: $cmd");
+  //  drush_shell_exec($cmd);
+  //  $lines = drush_shell_exec_output();
+  //  foreach ($lines as $line){
+  //    drush_log("[KNIFE] $line");
+  //  }
+  //
+  //}
   
   // On server verify, save new attributes to this node.
   if ($task->ref->type == 'server' && $task->task_type == 'verify') {
@@ -43,8 +58,7 @@ function drush_shop_provision_pre_hosting_task() {
       
       drush_log("[DEVUDO SHOPMASTER] SERVER CREATED! IP Address GRABBED: $server_node_data->ipaddress");
       $task->ref->ip_addresses[] = $server_node_data->ipaddress;
-      $task->devudo_test = "HI!";
-      
+      $task->context_options['devudo_ip'] = $server_node_data->ipaddress;
     }
     
     $attributes = $task->ref->attributes;
@@ -73,10 +87,22 @@ function drush_shop_provision_pre_hosting_task() {
     
     // @TODO: Still needs chef-client to run recipes with new attributes.
     
+    //HERE WE GO!
+    $command = "knife ssh name:$server_fqdn -x devudo 'sudo chef-client' -a ipaddress";
+    drush_log("[DEVUDO SHOPMASTER] Running: $command");
+    drush_shell_exec($command);
+    $lines = drush_shell_exec_output();
+    
+    foreach ($lines as $line){
+      drush_log("[KNIFE] $line");
+    }
+    
   }
 }
 
-
+/**
+ * Saving  to $task->context_options['ip_addresses'] works!
+ */
 function shop_provision_hosting_server_context_options(&$task) {
   
   drush_log("[DEVUDO] Shopmaster context options: " . $task->devudo_test, 'ok');
