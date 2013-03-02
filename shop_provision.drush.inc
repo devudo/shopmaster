@@ -36,7 +36,7 @@ function drush_shop_provision_pre_hosting_task() {
     drush_log("[DEVUDO] Running: $command");
     drush_shell_exec($command);
     $server_node_data_json = implode(drush_shell_exec_output());
-    $server_node_data = json_decode(implode($server_node_data_json));
+    $server_node_data = json_decode($server_node_data_json);
     
     if (!empty($server_node_data)){
       drush_log("[DEVUDO SHOPMASTER] Server Node Found: $server_node_data_json");
