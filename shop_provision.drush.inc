@@ -32,76 +32,88 @@ function drush_shop_provision_pre_hosting_task() {
     $server_fqdn = $task->ref->title;
     
     // If it has been created already:
-    $command = "knife node show $server_fqdn -a ipaddress -Fj";
-    drush_log("[DEVUDO] Running: $command");
-    drush_shell_exec($command);
-    $server_node_data_json = implode(drush_shell_exec_output());
-    $server_node_data = json_decode($server_node_data_json);
+    $server_node_data = shop_exec_json("knife node show $server_fqdn -a ipaddress -Fj");
     
-    if (!empty($server_node_data)){
-      drush_log("[DEVUDO SHOPMASTER] Server Node Found: $server_node_data_json");
-    } else {
-      drush_log("[DEVUDO SHOPMASTER] IP Address NOT FOUND: Creating server");
+    if (empty($server_node_data)){
+      drush_log("[DEVUDO] IP Address NOT FOUND: Creating server");
+      
       // CREATE SERVER
-      $command = "knife rackspace server create -r 'role[devmaster]' --server-name $server_fqdn --image 5cebb13a-f783-4f8c-8058-c4182c724ccd --flavor 2 -Fjson";
-      drush_log("[DEVUDO SHOPMASTER] Running: $command");
+      shop_exec("knife rackspace server create -r 'role[devmaster]' --server-name $server_fqdn --image 5cebb13a-f783-4f8c-8058-c4182c724ccd --flavor 2 -Fjson");
 
-      drush_shell_exec($command);
-      $lines = drush_shell_exec_output();
-      
-      foreach ($lines as $line){
-        drush_log("[KNIFE] $line");
-      }
-
-      // Get Data
-      drush_shell_exec("knife node show $server_fqdn -a ipaddress -Fj");
-      $server_node_data = drush_shell_exec_output();
-      $server_node_data = json_decode(implode($server_node_data));
-      
+      // Get IP Address
+      $server_node_data = shop_get_server($server_fqdn);
+      shop_log_object($server_node_data, '$server_node_data');
       drush_log("[DEVUDO SHOPMASTER] SERVER CREATED! IP Address GRABBED: $server_node_data->ipaddress");
       $task->ref->ip_addresses[] = $server_node_data->ipaddress;
-      $task->context_options['devudo_ip'] = $server_node_data->ipaddress;
+    } else {
+      drush_log("[DEVUDO] Chef Server Node found for $server_fqdn");
     }
     
     $attributes = $task->ref->attributes;
     $json_path = "/tmp/$server_fqdn.json";
     
-    drush_log("[DEVUDO SHOPMASTER] Adding attributes to $server_fqdn",'notice');
+    drush_log("[DEVUDO] Adding attributes to $server_fqdn",'notice');
     
     // Get chef node data
-    drush_shell_exec("knife node show $server_fqdn -l -Fj");
-    $chef_node = drush_shell_exec_output();
-    $chef_node = json_decode(implode($chef_node));
+    $chef_node = shop_get_server($server_fqdn);
 
     // Alter chef normal attributes
     $chef_node->normal = $attributes;
+    shop_log_object($chef_node, $json_path);
     
     // Save new json data to file
     $chef_node_string = json_encode($chef_node);
     file_put_contents($json_path, $chef_node_string);
-    drush_register_file_for_deletion($json_path);
-
-    // Save chef node (on chef server) from file.
-    drush_shell_exec("knife node from file $json_path");
-    $message = drush_shell_exec_output();
-    $message = implode($message);
-    drush_log("[DEVUDO SHOPMASTER] From Chef: $message",'notice');
+    //drush_register_file_for_deletion($json_path);
     
-    // @TODO: Still needs chef-client to run recipes with new attributes.
+    // Save chef node (on chef server) from file.
+    shop_exec("knife node from file $json_path");
     
     //HERE WE GO!
-    $command = "knife ssh name:$server_fqdn -x devudo 'sudo chef-client' -a ipaddress";
-    drush_log("[DEVUDO SHOPMASTER] Running: $command");
-    drush_shell_exec($command);
-    $lines = drush_shell_exec_output();
-    
-    foreach ($lines as $line){
-      drush_log("[KNIFE] $line");
-    }
+    shop_exec("knife ssh name:$server_fqdn -x devudo 'sudo chef-client' -a ipaddress");
     
   }
 }
 
+/**
+ * Helpful Exec
+ */
+function shop_exec($command, $label = "EXEC", $command_label = "KNIFE"){
+  drush_log("[$label] Running: $command");
+  drush_shell_exec($command);
+  $lines = drush_shell_exec_output();
+  foreach ($lines as $line){
+    drush_log("[$command_label] $line");
+  }
+  return implode("\n", $lines);
+}
+
+/**
+ * Helpful Exec to JSon
+ */
+function shop_exec_json($command, $string = FALSE, $label = "EXEC"){
+  drush_log("[$label] Running: $command");
+  drush_shell_exec($command);
+  $lines = drush_shell_exec_output();
+  $json = implode($lines);
+  drush_log("[$label] Returned: $json");
+  return $string? $json: json_decode($json);
+}
+
+/**
+ * Helper to load a server node from chef server
+ */
+function shop_get_server($node_name){
+  return shop_exec_json("knife node show $node_name -Fj");
+}
+
+/**
+ * Helper to log an object
+ */
+function shop_log_object($object, $name = '', $label = 'DEVUDO'){
+  $object = print_r($object, 1);
+  drush_log("[$label] $name => $object");
+}
 /**
  * Saving  to $task->context_options['ip_addresses'] works!
  */
