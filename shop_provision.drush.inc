@@ -35,11 +35,11 @@ function drush_shop_provision_pre_hosting_task() {
     $command = "knife node show $server_fqdn -a ipaddress -Fj";
     drush_log("[DEVUDO] Running: $command");
     drush_shell_exec($command);
-    $server_node_data = drush_shell_exec_output();
-    $server_node_data = json_decode(implode($server_node_data));
+    $server_node_data_json = implode(drush_shell_exec_output());
+    $server_node_data = json_decode(implode($server_node_data_json));
     
     if (!empty($server_node_data)){
-      drush_log("[DEVUDO SHOPMASTER] IP Address Found: " . $server_node_data->ipaddress);
+      drush_log("[DEVUDO SHOPMASTER] Server Node Found: $server_node_data_json");
     } else {
       drush_log("[DEVUDO SHOPMASTER] IP Address NOT FOUND: Creating server");
       // CREATE SERVER
