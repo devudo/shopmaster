@@ -6,7 +6,22 @@
  * Implements hook_form_alter().
  */
 function shop_hosting_form_alter(&$form, &$form_state, $form_id){
-
+  if ($form_id == 'server_node_form') {
+    $form['rackspace_id'] = array(
+      '#title' => t('Rackspace Server ID'),
+      '#description' => t('You really shouldn\'t be editing here...'),
+      '#type' => 'textfield',
+      '#default_value' => $form['#node']->devudo_server_info->rackspace_id,
+    );
+    
+    // If there is no server info, tell the update function to insert.
+    if (empty($form['#node']->devudo_server_info)){
+      $form['devudo_needs_insert'] = array(
+        '#type' => 'value',
+        '#value' => TRUE,
+      );
+    }
+  }
 }
 
 function shop_hosting_hosting_tasks_alter(&$tasks) {
@@ -26,6 +41,29 @@ function shop_hosting_hosting_tasks() {
 }
 
 /**
+ * Implements hook_nodeapi_TYPE_OP()
+ * Load attributes into our server node here.
+ */
+function shop_hosting_nodeapi_server_insert(&$node){
+  db_query('INSERT INTO {devudo_server_info} (rackspace_id, nid) VALUES ("%s", %d)', $node->rackspace_id, $node->nid);
+}
+
+/**
+ * Implements hook_nodeapi_TYPE_OP()
+ * Load attributes into our server node here.
+ */
+function shop_hosting_nodeapi_server_update(&$node){
+  if (!empty($node->rackspace_id)){
+    if ($node->devudo_needs_insert){
+      shop_hosting_nodeapi_server_insert($node);
+    } else {
+      db_query('UPDATE {devudo_server_info} SET rackspace_id = "%s" WHERE nid = %d', $node->rackspace_id, $node->nid);
+    }
+  }
+}
+
+/**
+ * Implements hook_nodeapi_TYPE_OP()
  * Load attributes into our server node here.
  */
 function shop_hosting_nodeapi_server_load(&$node){
@@ -35,7 +73,7 @@ function shop_hosting_nodeapi_server_load(&$node){
 
   // Add server users: any users with role "administrator"
   $admin_role = variable_get('shop_server_admin_role', 'administrator');
-  $admins = db_query('SELECT u.name, u.uid FROM users u LEFT JOIN users_roles ur on u.uid = ur.uid LEFT JOIN role r ON ur.rid = r.rid WHERE r.name = "%s" OR u.uid = 1 OR u.uid = %d', $admin_role, $node->uid);
+  $admins = db_query('SELECT u.name, u.uid FROM users u LEFT JOIN {users_roles} ur on u.uid = ur.uid LEFT JOIN role r ON ur.rid = r.rid WHERE r.name = "%s" OR u.uid = 1 OR u.uid = %d', $admin_role, $node->uid);
   while ($account = db_fetch_object($admins)){
     $ssh_keys = array();
     $keys = sshkey_load_all_by_entity('user', $account->uid);
@@ -53,11 +91,17 @@ function shop_hosting_nodeapi_server_load(&$node){
   // To set this, run 
   $node->attributes->devudo['users']['devudo'] = variable_get('shopmaster_ssh_public_key', '');
 
+  // Load server info
+  $info = db_query('SELECT * from {devudo_server_info} WHERE nid = %d', $node->nid);
+  $node->devudo_server_info = db_fetch_object($info);
+  
   // Authorized Keys to add to aegir user
   // @TODO: Figure out who should have direct access... maybe no one.
   //$node->attributes->aegir['authorized_keys'] = implode("\n", $ssh_keys);
   
   // @TODO: Allow tracking of users to grant account
+  
+  
 
 }
 
@@ -89,6 +133,15 @@ function shop_hosting_nodeapi_server_view(&$node){
     '#value' => theme('item_list', $users_links),
     '#description' => t('All administrators of this site and the creator of this server are granted access.'),
   );
+  
+  // Show rackspace server ID
+   $node->content['rackspace_id'] = array(
+    '#type' => 'item',
+    '#title' => t('Rackspace Server ID'),
+    '#value' => empty($node->devudo_server_info->rackspace_id)? t('Unknown'): $node->devudo_server_info->rackspace_id,
+    '#description' => t('The rackspace cloud server id.'),
+  );
+  
   
   // SHOW TIP IF PUBLIC KEY IS NOT AVAILABLE
   // Display helpful tips for connecting.
