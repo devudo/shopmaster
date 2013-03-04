@@ -67,24 +67,28 @@ function shop_hosting_nodeapi_server_load(&$node){
 function shop_hosting_nodeapi_server_view(&$node){
   
   // Rough display of attributes.
-  foreach ($node->attributes as $name => $value) {
-    if (is_array($value)){
-      foreach($value as $sub_name => $sub_value){
-        $node->content['attributes'][$sub_name] = array(
-          '#type' => 'item',
-          '#title' => "$name:$sub_name",
-          '#value' => kpr($sub_value,1),
-        );  
-      }
-    } elseif (is_string($value)) {
-      $node->content['attributes'] = array(
-        '#type' => 'item',
-        '#title' => $name,
-        '#value' => $value,
-      ); 
+  $node->content['attributes'] = array(
+    '#type' => 'item',
+    '#title' => t('Chef Attributes'),
+    '#value' => kpr($node->attributes, 1),
+  );
+  
+  // Show users who have been granted access
+  $users = array_keys($node->attributes->devudo['users']);
+  $users_links = array();
+  
+  foreach ($users as $username){
+    if ($username != 'devudo') {
+      $account = user_load(array('name' => $username));
+      $users_links[$username] = theme_username($account);  
     }
-    
   }
+  $node->content['users'] = array(
+    '#type' => 'item',
+    '#title' => t('Users'),
+    '#value' => theme('item_list', $users_links),
+    '#description' => t('All administrators of this site and the creator of this server are granted access.'),
+  );
   
   // SHOW TIP IF PUBLIC KEY IS NOT AVAILABLE
   // Display helpful tips for connecting.
