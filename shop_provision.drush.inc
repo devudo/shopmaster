@@ -7,6 +7,9 @@
  *    drush @hostmaster hosting-tasks
  *
  * NOTE: This ONLY runs when being called from a hostmaster task.
+ *
+ * The server node is available at $task->ref.
+ * This node is saved at the end!
  */
 function drush_shop_provision_pre_hosting_task() {
   // Get Hostmaster Task object
@@ -35,21 +38,21 @@ function drush_shop_provision_pre_hosting_task() {
     
     // Look for this chef node on Chef Server
     $server_fqdn = $task->ref->title;
-    drush_log("[DEVUDO] Looking for chef node $server_fqdn on chef server");
+    drush_log("[DEVUDO] Looking for chef node $server_fqdn on chef server", 'ok');
     $chef_node = shop_get_server($server_fqdn);
     
     // CREATE: If no server found, Create & prepare a new server
     if (empty($chef_node)){
       
       // @TODO: Allow flavor to be chosen
-      drush_log("[DEVUDO] Chef node not found with name:$server_fqdn. Creating server...");
+      drush_log("[DEVUDO] Chef node not found with name:$server_fqdn. Creating server...", 'warning');
       $attributes_json = escapeshellarg(json_encode($attributes));
       $output = shop_exec("knife rackspace server create -r 'role[devmaster]' --server-name $server_fqdn --image 5cebb13a-f783-4f8c-8058-c4182c724ccd --flavor 2 -Fjson -j $attributes_json", "KNIFE");
-      drush_log("[DEVUDO] Chef node created!");
+      drush_log("[DEVUDO] Chef node created!", 'ok');
     }
     // UPDATE: If a server was found, we will update it's attributes
     else {
-      drush_log("[DEVUDO] Chef node found with name:$server_fqdn, preparing to update attributes...");
+      drush_log("[DEVUDO] Chef node found with name:$server_fqdn, preparing to update attributes...", 'ok');
       
       // Save chef normal attributes from shop.devudo.com server node
       $chef_node->normal = $attributes;
@@ -61,13 +64,13 @@ function drush_shop_provision_pre_hosting_task() {
       
       // Save chef node (on chef server) from file.
       // @TODO: I think this is causing the loss of system attributes 
-      drush_log('[DEVUDO] Saving chef node from file...');
+      drush_log('[DEVUDO] Saving chef node from file...', 'ok');
       shop_exec("knife node from file $json_path");
       
       // Run chef-client to update the server itself.
       // NOTE: We don't have to do this on create, I THINK
-      drush_log('[DEVUDO] Running chef-client to update the chef node.');
-      //shop_exec("knife ssh name:$server_fqdn -x devudo 'sudo chef-client' -a ipaddress");
+      drush_log('[DEVUDO] Running chef-client to update the chef node.', 'ok');
+      shop_exec("knife ssh name:$server_fqdn -x devudo 'sudo chef-client' -a ipaddress");
     }
     
     // Get the newly created or updated chef node from chef server
@@ -77,7 +80,12 @@ function drush_shop_provision_pre_hosting_task() {
     // @TODO: Should we grab both public and private IPs?
     if (!empty($chef_node->automatic->ipaddress)){
       drush_log('[DEVUDO] ipaddress found in chef node attributes!', 'ok');
-      $task->ref->ip_addresses[] = $chef_node->automatic->ipaddress;
+      $task->ref->ip_addresses = array($chef_node->automatic->ipaddress);
+      
+      // @TODO: SAVE DNS!!! This will be much slower here...
+      // We need to add the DNS record the moment that rackspace
+      // grants an IP address
+      
     } else {
       drush_log('[DEVUDO] No ipaddress found in chef node attributes!', 'warning');
     }
