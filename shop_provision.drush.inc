@@ -46,9 +46,9 @@ function drush_shop_provision_pre_hosting_task() {
       
       // @TODO: Allow flavor to be chosen
       drush_log("[DEVUDO] Chef node not found with name:$server_fqdn. Creating server...", 'warning');
-      $attributes_json = escapeshellarg(json_encode($attributes));
-      $output = shop_exec("knife rackspace server create -r 'role[devmaster]' --server-name $server_fqdn --image 5cebb13a-f783-4f8c-8058-c4182c724ccd --flavor 2 -Fjson -j $attributes_json", "KNIFE");
-      drush_log("[DEVUDO] Chef node created!", 'ok');
+      $rackspace_id = shop_create_server($server_fqdn, $attributes);
+      drush_log("[DEVUDO] Rackspace ID Detected: $rackspace_id", 'ok');
+      $task->ref->rackspace_id = $rackspace_id;
     }
     // UPDATE: If a server was found, we will update it's attributes
     else {
@@ -106,14 +106,14 @@ function drush_shop_provision_pre_hosting_task() {
 /**
  * Helpful Exec
  */
-function shop_exec($command, $label = "EXEC", $command_label = "KNIFE"){
+function shop_exec($command, $label = "EXEC", $command_label = "KNIFE", $output = 'string'){
   drush_log("[$label] Running: $command");
   drush_shell_exec($command);
   $lines = drush_shell_exec_output();
   foreach ($lines as $line){
     drush_log("[$command_label] $line");
   }
-  return implode("\n", $lines);
+  return $output == 'string'? implode("\n", $lines): $lines;
 }
 
 /**
@@ -133,6 +133,18 @@ function shop_exec_json($command, $string = FALSE, $label = "EXEC"){
  */
 function shop_get_server($node_name, $options = ' -l'){
   return shop_exec_json("knife node show $node_name -Fj $options", FALSE, 'KNIFE');
+}
+
+/**
+ * Helper to create a server from scratch
+ */
+function shop_create_server($server_fqdn, $attributes = array()){
+  $attributes_json = escapeshellarg(json_encode($attributes));
+  $lines = shop_exec("knife rackspace server create -r 'role[devmaster]' --server-name $server_fqdn --image 5cebb13a-f783-4f8c-8058-c4182c724ccd --flavor 2 -Fjson -j $attributes_json", "KNIFE", "CHEF", 'array');
+  
+  // @TODO: Will the first line always be our instance id?
+  $rackspace_instance_id = str_replace('Instance ID: ', '', $lines[0]);
+  return $rackspace_instance_id;
 }
 
 /**
