@@ -27,51 +27,71 @@ function drush_shop_provision_pre_hosting_task() {
   //
   //}
   
-  // On server verify, save new attributes to this node.
+  // On server verify: we will create or update our server
   if ($task->ref->type == 'server' && $task->task_type == 'verify') {
-    $server_fqdn = $task->ref->title;
-    
-    // If it has been created already:
-    $server_node_data = shop_exec_json("knife node show $server_fqdn -a ipaddress -Fj");
-    
-    if (empty($server_node_data)){
-      drush_log("[DEVUDO] IP Address NOT FOUND: Creating server");
-      
-      // CREATE SERVER
-      shop_exec("knife rackspace server create -r 'role[devmaster]' --server-name $server_fqdn --image 5cebb13a-f783-4f8c-8058-c4182c724ccd --flavor 2 -Fjson");
-
-      // Get IP Address
-      $server_node_data = shop_get_server($server_fqdn);
-      shop_log_object($server_node_data, '$server_node_data');
-      drush_log("[DEVUDO SHOPMASTER] SERVER CREATED! IP Address GRABBED: $server_node_data->ipaddress");
-      $task->ref->ip_addresses[] = $server_node_data->ipaddress;
-    } else {
-      drush_log("[DEVUDO] Chef Server Node found for $server_fqdn");
-    }
     
     $attributes = $task->ref->attributes;
     $json_path = "/tmp/$server_fqdn.json";
     
-    drush_log("[DEVUDO] Adding attributes to $server_fqdn",'notice');
-    
-    // Get chef node data
+    // Look for this chef node on Chef Server
+    $server_fqdn = $task->ref->title;
+    drush_log("[DEVUDO] Looking for chef node $server_fqdn on chef server");
     $chef_node = shop_get_server($server_fqdn);
+    
+    // CREATE: If no server found, Create & prepare a new server
+    if (empty($chef_node)){
+      
+      // @TODO: Allow flavor to be chosen
+      drush_log("[DEVUDO] Chef node not found with name:$server_fqdn. Creating server...");
+      $attributes_json = escapeshellarg(json_encode($attributes));
+      $output = shop_exec("knife rackspace server create -r 'role[devmaster]' --server-name $server_fqdn --image 5cebb13a-f783-4f8c-8058-c4182c724ccd --flavor 2 -Fjson -j $attributes_json", "KNIFE");
+      drush_log("[DEVUDO] Chef node created!");
+    }
+    // UPDATE: If a server was found, we will update it's attributes
+    else {
+      drush_log("[DEVUDO] Chef node found with name:$server_fqdn, preparing to update attributes...");
+      
+      // Save chef normal attributes from shop.devudo.com server node
+      $chef_node->normal = $attributes;
 
-    // Alter chef normal attributes
-    $chef_node->normal = $attributes;
-    shop_log_object($chef_node, $json_path);
+      // Save new json data to file
+      $chef_node_string = json_encode($chef_node);
+      file_put_contents($json_path, $chef_node_string);
+      //drush_register_file_for_deletion($json_path);
+      
+      // Save chef node (on chef server) from file.
+      // @TODO: I think this is causing the loss of system attributes 
+      drush_log('[DEVUDO] Saving chef node from file...');
+      shop_exec("knife node from file $json_path");
+      
+      // Run chef-client to update the server itself.
+      // NOTE: We don't have to do this on create, I THINK
+      drush_log('[DEVUDO] Running chef-client to update the chef node.');
+      //shop_exec("knife ssh name:$server_fqdn -x devudo 'sudo chef-client' -a ipaddress");
+    }
     
-    // Save new json data to file
-    $chef_node_string = json_encode($chef_node);
-    file_put_contents($json_path, $chef_node_string);
-    //drush_register_file_for_deletion($json_path);
+    // Get the newly created or updated chef node from chef server
+    $chef_node = shop_get_server($server_fqdn);
     
-    // Save chef node (on chef server) from file.
-    shop_exec("knife node from file $json_path");
+    // If we have the IP, save it here
+    // @TODO: Should we grab both public and private IPs?
+    if (!empty($chef_node->automatic->ipaddress)){
+      drush_log('[DEVUDO] ipaddress found in chef node attributes!', 'ok');
+      $task->ref->ip_addresses[] = $chef_node->automatic->ipaddress;
+    } else {
+      drush_log('[DEVUDO] No ipaddress found in chef node attributes!', 'warning');
+    }
     
-    //HERE WE GO!
-    shop_exec("knife ssh name:$server_fqdn -x devudo 'sudo chef-client' -a ipaddress");
-    
+    // @TODO: Save other important attributes now.
+    // NOTE: The actual rackspace server ID does NOT seem to be here!
+    //   Lets research the right way to get it or just hack our way to
+    //   it by using knife rackspace list.
+    if (!empty($chef_node->automatic->rackspace)){
+      drush_log('[DEVUDO] Rackspace Info found', 'ok');
+      $task->ref->rackspace = $chef_node->automatic->rackspace;
+    } else {
+      
+    }
   }
 }
 
@@ -103,8 +123,8 @@ function shop_exec_json($command, $string = FALSE, $label = "EXEC"){
 /**
  * Helper to load a server node from chef server
  */
-function shop_get_server($node_name){
-  return shop_exec_json("knife node show $node_name -Fj");
+function shop_get_server($node_name, $options = ' -l'){
+  return shop_exec_json("knife node show $node_name -Fj $options", FALSE, 'KNIFE');
 }
 
 /**
