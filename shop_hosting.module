@@ -45,6 +45,14 @@ function shop_hosting_hosting_tasks() {
  * Load attributes into our server node here.
  */
 function shop_hosting_nodeapi_server_insert(&$node){
+  // Notify me when a new server gets added... We still have to
+  // do manual DNS!!
+  // @TODO: Add notifications or rules or some module to do this.
+  $subject =  "[DEVUDO] A new server has been created: $node->title";
+  $body = "Someone created $node->title.  Please visit http://mycloud.rackspace.com to add a DNS entry for the server that gets created.";
+  $to = 'jon@thinkdrop.net';
+  mail($to, $subject, $body);
+
   db_query('INSERT INTO {devudo_server_info} (rackspace_id, nid) VALUES ("%s", %d)', $node->rackspace_id, $node->nid);
 }
 
