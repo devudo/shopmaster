@@ -1,0 +1,14 @@
+# Ignore configuration files that may contain sensitive information.
+ 
+# Ignore paths that contain user-generated content.
+sites/*/files
+sites/*/private
+
+# Ignore aegir generated code
+drushrc.php
+sites/*/drushrc.php
+sites/*/settings.php
+sites/*/default.settings.php
+
+# Ignore other git repos
+*.git
