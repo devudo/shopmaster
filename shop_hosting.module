@@ -95,9 +95,11 @@ function shop_hosting_nodeapi_server_load(&$node){
   $info = db_query('SELECT * from {devudo_server_info} WHERE nid = %d', $node->nid);
   $node->devudo_server_info = db_fetch_object($info);
   
-  // FORCE PROFILE:DEVMASTER!
-  $node->attributes->aegir['profile'] = 'devmaster';
-  $node->attributes->aegir['makefile'] = 'http://devudo.github.com/devmaster.make';
+  // FORCE a few attributes
+  if ($node->title != 'shop.devudo.com'){
+    $node->attributes->aegir['profile'] = 'devmaster';
+    $node->attributes->aegir['makefile'] = 'http://devudo.github.com/devmaster.make';
+  }
   
   // Authorized Keys to add to aegir user
   // @TODO: Figure out who should have direct access... maybe no one.
