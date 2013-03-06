@@ -38,13 +38,6 @@ function shop_provision_drush_command() {
 }
 
 /**
- * Change the selected installation profile of hostmaster-install
- */
-function drush_shop_provision_pre_hostmaster_install() {
-  print "STOP!";
-  die;
-}
-/**
  * Implements drush_HOOK_pre_COMMAND()
  *
  * This runs for each tasks during the command
