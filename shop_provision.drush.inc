@@ -106,7 +106,7 @@ function drush_shop_provision_pre_hosting_task_server_verify() {
     // Save chef normal attributes from shop.devudo.com server node
     // Lets do both here!  better safe then sorry?
     $chef_node->override = $attributes;
-    $chef_node->default = $attributes;
+    $chef_node->normal = $attributes;
 
     // Save new json data to file
     $chef_node_string = json_encode($chef_node);
