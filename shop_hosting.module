@@ -1,6 +1,60 @@
 <?php
 /**
+ * @file
+ * shop_hosting.module
  */
+
+/**
+ * Implements hook_nodeapi_TYPE_OP()
+ * CHEF NODE ATTRIBUTES get loaded in here.
+ * Load attributes into our server node here.
+ */
+function shop_hosting_nodeapi_server_load(&$node){
+  
+  // Build attributes object
+  $node->attributes = new stdClass;
+
+  // Add server users: any users with role "administrator"
+  $admin_role = variable_get('shop_server_admin_role', 'administrator');
+  $admins = db_query('SELECT u.name, u.uid FROM users u LEFT JOIN {users_roles} ur on u.uid = ur.uid LEFT JOIN role r ON ur.rid = r.rid WHERE r.name = "%s" OR u.uid = 1 OR u.uid = %d', $admin_role, $node->uid);
+  while ($account = db_fetch_object($admins)){
+    $ssh_keys = array();
+    $keys = sshkey_load_all_by_entity('user', $account->uid);
+    $account->ssh_keys = array();
+    foreach ($keys as $key){
+      $ssh_keys[] = $key->value;
+      $account->ssh_keys[] = $key->value;
+    }
+    // Adding each users authorized key.
+    $node->attributes->devudo['users'][$account->name] = implode("\n", $account->ssh_keys);
+  }
+  
+  
+  // Add this servers public key to devudo user.
+  // To set this, run 
+  $node->attributes->devudo['users']['devudo'] = variable_get('shopmaster_ssh_public_key', '');
+
+  // Load server info
+  $info = db_query('SELECT * from {devudo_server_info} WHERE nid = %d', $node->nid);
+  $node->devudo_server_info = db_fetch_object($info);
+  
+  // FORCE a few attributes
+  if ($node->title != 'shop.devudo.com'){
+    //$node->attributes->aegir['profile'] = 'devmaster';
+    //$node->attributes->aegir['makefile'] = 'http://devudo.github.com/devmaster.make';
+  }
+  
+  // Adding the author of the node as the admin user on the devshop
+  $account = user_load($node->uid);
+  $node->attributes->aegir['client_email'] = $account->mail;
+  
+  // Authorized Keys to add to aegir user
+  // @TODO: Figure out who should have direct access... maybe no one.
+  //$node->attributes->aegir['authorized_keys'] = implode("\n", $ssh_keys);
+  
+  // @TODO: Allow tracking of users to grant account
+  
+}
 
 /**
  * Implements hook_form_alter().
@@ -70,58 +124,6 @@ function shop_hosting_nodeapi_server_update(&$node){
   }
 }
 
-/**
- * Implements hook_nodeapi_TYPE_OP()
- * Load attributes into our server node here.
- */
-function shop_hosting_nodeapi_server_load(&$node){
-  
-  // Build attributes object
-  $node->attributes = new stdClass;
-
-  // Add server users: any users with role "administrator"
-  $admin_role = variable_get('shop_server_admin_role', 'administrator');
-  $admins = db_query('SELECT u.name, u.uid FROM users u LEFT JOIN {users_roles} ur on u.uid = ur.uid LEFT JOIN role r ON ur.rid = r.rid WHERE r.name = "%s" OR u.uid = 1 OR u.uid = %d', $admin_role, $node->uid);
-  while ($account = db_fetch_object($admins)){
-    $ssh_keys = array();
-    $keys = sshkey_load_all_by_entity('user', $account->uid);
-    $account->ssh_keys = array();
-    foreach ($keys as $key){
-      $ssh_keys[] = $key->value;
-      $account->ssh_keys[] = $key->value;
-    }
-    // Adding each users authorized key.
-    $node->attributes->devudo['users'][$account->name] = implode("\n", $account->ssh_keys);
-  }
-  
-  
-  // Add this servers public key to devudo user.
-  // To set this, run 
-  $node->attributes->devudo['users']['devudo'] = variable_get('shopmaster_ssh_public_key', '');
-
-  // Load server info
-  $info = db_query('SELECT * from {devudo_server_info} WHERE nid = %d', $node->nid);
-  $node->devudo_server_info = db_fetch_object($info);
-  
-  // FORCE a few attributes
-  if ($node->title != 'shop.devudo.com'){
-    $node->attributes->aegir['profile'] = 'devmaster';
-    $node->attributes->aegir['makefile'] = 'http://devudo.github.com/devmaster.make';
-  }
-  
-  // Adding the author of the node as the admin user on the devshop
-  $account = user_load($node->uid);
-  $node->attributes->aegir['client_email'] = $account->mail;
-  
-  // Authorized Keys to add to aegir user
-  // @TODO: Figure out who should have direct access... maybe no one.
-  //$node->attributes->aegir['authorized_keys'] = implode("\n", $ssh_keys);
-  
-  // @TODO: Allow tracking of users to grant account
-  
-  
-
-}
 
 /**
  * Implements hook_nodeapi_TYPE_OP()
