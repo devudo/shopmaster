@@ -87,7 +87,7 @@ function drush_shop_provision_pre_hosting_task_server_verify() {
     // Run chef-client to update the server itself.
     // NOTE: We don't have to do this on create, I THINK
     drush_log('[DEVUDO] Running chef-client to update the chef node.', 'ok');
-    shop_exec("knife ssh name:$server_fqdn -x devudo 'sudo chef-client' -a ipaddress");
+    shop_exec("knife ssh name:$server_fqdn -x devudo 'sudo /usr/bin/chef-client' -a ipaddress");
   }
   
   // Get the newly created or updated chef node from chef server
