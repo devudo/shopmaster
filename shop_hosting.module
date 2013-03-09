@@ -17,8 +17,8 @@ function shop_hosting_nodeapi_server_load(&$node){
   // Add server users: any users with role "administrator"
   $admin_role = variable_get('shop_server_admin_role', 'administrator');
   $admins = db_query('SELECT u.name, u.uid FROM users u LEFT JOIN {users_roles} ur on u.uid = ur.uid LEFT JOIN role r ON ur.rid = r.rid WHERE r.name = "%s" OR u.uid = 1 OR u.uid = %d', $admin_role, $node->uid);
+  $ssh_keys = array();
   while ($account = db_fetch_object($admins)){
-    $ssh_keys = array();
     $keys = sshkey_load_all_by_entity('user', $account->uid);
     $account->ssh_keys = array();
     foreach ($keys as $key){
