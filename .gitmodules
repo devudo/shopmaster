@@ -1,0 +1,3 @@
+[submodule "sites/all/modules/shop_hosting"]
+	path = sites/all/modules/shop_hosting
+	url = git@github.com:devudo/shop_hosting.git
