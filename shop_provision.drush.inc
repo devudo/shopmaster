@@ -70,8 +70,8 @@ function drush_shop_provision_pre_hosting_task_server_verify() {
     drush_log("[DEVUDO] Chef node found with name:$server_fqdn, preparing to update attributes...", 'ok');
     
     // Save chef normal attributes from shop.devudo.com server node
-    // Lets do both here!  better safe then sorry?
-    // $chef_node->override = $attributes;
+    // @TODO: Learn how to properly save a SINGLE attribute to a node on a chef server.
+    $chef_node->override = $attributes;
     $chef_node->normal = $attributes;
 
     // Save new json data to file
