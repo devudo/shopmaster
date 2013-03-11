@@ -1,5 +1,5 @@
 <?php
-// $Id: modalframe.module,v 1.1.2.12 2010/04/23 07:32:15 markuspetrux Exp $
+// $Id: modalframe.module,v 1.1.2.10 2010/01/02 14:07:39 markuspetrux Exp $
 
 /**
  * @file
@@ -89,7 +89,7 @@ function modalframe_preprocess_page(&$variables) {
     if (!isset($variables['template_files'])) {
       $variables['template_files'] = array();
     }
-    $variables['template_files'][] = 'modalframe-page';
+    array_unshift($variables['template_files'], 'modalframe-page');
   }
 }
 
@@ -237,9 +237,8 @@ function modalframe_child_js() {
   }
   $processed = TRUE;
 
-  // Disable admin_menu, admin module output and similar modules, which
-  // is something child windows don't need.
-  module_invoke_all('suppress');
+  // Disable admin_menu, which is something child windows don't need.
+  module_invoke('admin_menu', 'suppress');
 
   // This is required to get access to jQuery UI extensions to jQuery itself,
   // such as the ':focusable' and ':tabbable' selectors.

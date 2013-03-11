@@ -1,4 +1,5 @@
 <?php
+// $Id: contact.inc,v 1.1.2.3 2008/12/14 04:32:47 dww Exp $
 
 /**
  * Add a new contact category, including recipients and so on.

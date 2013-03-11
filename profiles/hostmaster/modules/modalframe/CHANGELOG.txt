@@ -1,22 +1,7 @@
-// $Id: CHANGELOG.txt,v 1.1.2.29 2010/05/14 03:52:42 markuspetrux Exp $
+// $Id: CHANGELOG.txt,v 1.1.2.22 2010/01/02 14:15:52 markuspetrux Exp $
 
-6.x-1.7 (2010-05-14)
-====================
-
-Features:
-- #732820 Use module_invoke_all('suppress') in child windows to provide support for modules such as admin_menu and admin 2.x.
-
-Bugfixes:
-- #673710 IE issue - Object doesn't support this property or method in js/parent.js line 605.
-- #740160 by corey.aufang - Internet Explorer issues with IFRAME.
-- #744122 Colides with page-admin.tpl.php and other page.tpl.php variants.
-
-Compatibility:
-- #798618 Deprecate support for jQuery UI library 1.6.x.
-
-
-6.x-1.6 (2010-01-02)
-====================
+6.x-1.6
+=======
 
 Features:
 - Transform function triggerParentEvent() into a method of the modalFrameChild object, so it can be easily reused.
@@ -27,8 +12,8 @@ Features:
 - Performance enhancement: prevent template_preprocess_page() from generating sidebar blocks when a modal frame has been requested.
 
 
-6.x-1.5 (2009-12-29)
-====================
+6.x-1.5
+=======
 
 Features:
 - #668540 Removed the autoResize option in favor of the autoFit option that serves both purposes.
@@ -47,8 +32,8 @@ Bugfixes:
 - #590564 Use custom event handlers to trigger events on the parent from the child window.
 
 
-6.x-1.4 (2009-09-20)
-====================
+6.x-1.4
+=======
 
 Features:
 - #536410 by quicksketch: Increase height/width calculation consistency.
@@ -60,16 +45,16 @@ Bugfixes:
 - #576448 Use unique filename for CSS files to allow overriding stylesheets from theme.
 
 
-6.x-1.3 (2009-07-08)
-====================
+6.x-1.3
+=======
 
 Features:
 - #496078 by Gábor Hojtsy: Make draggability optional.
 - #496056 by Gábor Hojtsy: Do not include site name in modal dialog title.
 
 
-6.x-1.2 (2009-06-17)
-====================
+6.x-1.2
+=======
 
 Features:
 - Added second argument to onSubmit handler to get access to status messages generated during form processing.
@@ -79,8 +64,8 @@ Bugfixes:
 - Missing $closure in modalframe-page template. Oops!
 
 
-6.x-1.1 (2009-05-30)
-====================
+6.x-1.1
+=======
 
 - Load jQuery UI core on child windows to get access to tabbable elements.
 - Fully rewritten method to deal with tabbable elements in child window.
@@ -96,7 +81,7 @@ Bugfixes:
 - Minor changes in inline code documentation and coding style.
 
 
-6.x-1.0 (2009-05-27)
-====================
+6.x-1.0
+=======
 
 - Initial release.

@@ -1,4 +1,5 @@
 <?php
+// $Id: user.inc,v 1.1.2.7.2.1 2009/03/11 16:29:39 jamesandres Exp $
 
 /**
  * Add a user.
@@ -25,7 +26,7 @@ function install_add_user($username, $password, $email, $roles = array(), $statu
     }
   }
 
-  return user_save(
+  user_save(
     new stdClass(),
     array(
       'name' => $username, 
@@ -34,7 +35,7 @@ function install_add_user($username, $password, $email, $roles = array(), $statu
       'roles' => $role_assignments,
       'status' => $status
     )
-  );
+  );	
 }
 
 /**
@@ -64,24 +65,6 @@ function install_add_role($name) {
   }
   
   return ($rid) ? $rid : install_get_rid($name);
-}
-
-/**
- * Remove a role from the roles table and delete any user associations.
- */
-function install_remove_role($name) {
-  $rid = install_get_rid($name);
-  if (!$rid) {
-    return FALSE;
-  }
-  
-  // Next 4 lines taken from core (user_admin_role_submit in user.admin.inc)
-  db_query('DELETE FROM {role} WHERE rid = %d', $rid);
-  db_query('DELETE FROM {permission} WHERE rid = %d', $rid);
-  // Update the users who have this role set:
-  db_query('DELETE FROM {users_roles} WHERE rid = %d', $rid);
-  
-  return TRUE;
 }
 
 /**

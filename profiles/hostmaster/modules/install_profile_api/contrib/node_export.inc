@@ -1,4 +1,5 @@
 <?php
+// $Id: node_export.inc,v 1.1.2.2 2009/07/14 18:15:19 jamesandres Exp $
 
 /**
  * @file
@@ -42,9 +43,7 @@ function install_node_export_import_from_file($file, $properties = array(), $aut
   );
   $properties = array_merge($default_properties, $properties);
 
-  if (!function_exists('node_export_node_decode')) {
-    module_load_include('inc', 'node_export', 'node_export.pages');
-  }
+  module_load_include('inc', 'node_export', 'node_export.pages');
 
   // This bit borrowed from node_export module, it wasn't possible to use
   // drupal_execute because the export_node_import() function deals with

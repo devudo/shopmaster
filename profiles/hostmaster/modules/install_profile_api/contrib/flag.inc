@@ -1,4 +1,5 @@
 <?php
+// $Id: flag.inc,v 1.1.2.4.2.1 2009/03/03 18:22:06 quicksketch Exp $
 
 /**
  * Create a new Flag type.

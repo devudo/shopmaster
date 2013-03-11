@@ -1,4 +1,5 @@
 <?php
+// $Id: menu.inc,v 1.1.2.6.2.3 2009/03/26 17:31:19 jamesandres Exp $
 
 /**
  * Create a new top-level menu.
@@ -67,7 +68,7 @@ function install_menu_create_menu($title, $menu_name = '', $desc = '') {
  *   A menu item if found, boolean FALSE otherwise.
  */
 function install_menu_get_item($mlid) {
-  return db_fetch_array(db_query("SELECT * FROM {menu_links} WHERE mlid = %d", $mlid));
+  return db_fetch_array(db_query_range("SELECT * FROM {menu_links} WHERE mlid = %d", $mlid));
 }
 
 /**
@@ -137,8 +138,10 @@ function install_menu_set_menu($mlid, $plid = NULL, $weight = NULL) {
   $return = FALSE;
   $update = FALSE;
 
-  $curr_menu = db_fetch_array(db_query("SELECT * FROM {menu_links} WHERE mlid = %d", $mlid));
-  $curr_menu['options'] = unserialize($curr_menu['options']);
+  $result = db_query("SELECT * FROM {menu_links} WHERE mlid = %d", $mlid);
+  while ($row = db_fetch_array($result)) {
+    $curr_menu = $row;
+  }
 
   // See if we need to update the parent ID.
   if (!is_null($plid) && $plid !== $curr_menu['plid']) {

@@ -1,4 +1,4 @@
-// $Id: parent.js,v 1.1.2.24 2010/04/16 18:11:25 markuspetrux Exp $
+// $Id: parent.js,v 1.1.2.22 2010/01/02 06:07:14 markuspetrux Exp $
 
 (function ($) {
 
@@ -137,8 +137,8 @@ Drupal.modalFrame.create = function() {
 
   // Note: We use scrolling="yes" for IE as a workaround to yet another IE bug
   // where the horizontal scrollbar is always rendered, no matter how wide the
-  // iframe element is defined. IE also requires a few more non-std properties.
-  self.iframe.$element = $('<iframe id="modalframe-element" name="modalframe-element"'+ ($.browser.msie ? ' scrolling="yes" frameborder="0" allowTransparency="true"' : '') +'/>');
+  // iframe element is defined.
+  self.iframe.$element = $('<iframe id="modalframe-element" name="modalframe-element"'+ ($.browser.msie ? ' scrolling="yes"' : '') +'/>');
   self.iframe.$container = $('<div id="modalframe-container"/>').append(self.iframe.$element);
   $('body').append(self.iframe.$container);
 
@@ -595,7 +595,7 @@ Drupal.modalFrame.sanitizeSize = function(size) {
  * @see http://www.howtocreate.co.uk/fixedPosition.html
  */
 Drupal.modalFrame.fixPosition = function($element, isOpen) {
-  var self = this, $window = $(window);
+  var $window = $(window);
   if ($.browser.msie && parseInt($.browser.version) <= 6) {
     // IE6 does not support position:'fixed'.
     // Lock the window scrollBar instead.

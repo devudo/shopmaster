@@ -1,6 +1,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Modal Frame API module for Drupal 6
-;; $Id: README.txt,v 1.1.2.11 2010/05/14 03:10:39 markuspetrux Exp $
+;; $Id: README.txt,v 1.1.2.10 2010/01/01 20:31:01 markuspetrux Exp $
 ;;
 ;; Original author: markus_petrux (http://drupal.org/user/39593)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -36,11 +36,12 @@ pretty easy to adapt the provided stylesheets to match the look of the site.
 REQUIREMENTS
 ============
 
-- jQuery UI module (with jQuery UI library 1.7.x).
+- jQuery UI (either version 1.6.x or 1.7.x).
   http://drupal.org/project/jquery_ui
 
-  * Note that you also need jQuery 1.3.x, currently provided by the jQuery
-    Update module 6.x-2.x. See http://drupal.org/project/jquery_update
+  * Note: If you need to use jQuery UI 1.7.x, then you need jQuery 1.3.x,
+    which is currently provided by jQuery Update 6.x-2.x. Please, see the
+    project page at: http://drupal.org/project/jquery_update
 
 - The onBeforeUnload API is not required but recommended. It enhances
   synchronization of parent/child windows.
