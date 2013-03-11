@@ -1,0 +1,11 @@
+name = Install Profile API
+description = Utility functions that help with install profile creation and running
+core = "6.x"
+
+
+; Information added by drupal.org packaging script on 2012-02-23
+version = "6.x-2.2"
+core = "6.x"
+project = "install_profile_api"
+datestamp = "1330014049"
+
