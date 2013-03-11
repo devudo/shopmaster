@@ -167,7 +167,7 @@ function shop_hosting_nodeapi_server_view(&$node){
   $node->content['link'] = array(
     '#type' => 'item',
     '#title' => t('Goto'),
-    '#value' => l($url, $url),
+    '#value' => l($url, $url, array('attributes' => array('target' => '_blank'))),
     '#description' => t('The URL of this Devudo DevShop.'),
     '#weight' => -10,
   );
