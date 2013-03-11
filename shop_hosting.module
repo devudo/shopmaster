@@ -161,6 +161,16 @@ function shop_hosting_nodeapi_server_view(&$node){
     '#value' => empty($node->devudo_server_info->rackspace_id)? t('Unknown'): $node->devudo_server_info->rackspace_id,
     '#description' => t('The rackspace cloud server id.'),
   );
+   
+  // Show a nice link
+  $url = "http://$node->title";
+  $node->content['link'] = array(
+    '#type' => 'item',
+    '#title' => t('Goto'),
+    '#value' => l($url, $url),
+    '#description' => t('The URL of this Devudo DevShop.'),
+    '#weight' => -10,
+  );
   
   
   // SHOW TIP IF PUBLIC KEY IS NOT AVAILABLE
