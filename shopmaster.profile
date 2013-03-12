@@ -7,7 +7,7 @@
  * @return
  *  An array of modules to be enabled.
  */
-function hostmaster_profile_modules() {
+function shopmaster_profile_modules() {
   return array(
     /* core */ 'block', 'color', 'filter', 'help', 'menu', 'node', 'system', 'user',
     /* aegir contrib */ 'hosting', 'hosting_task', 'hosting_client', 'hosting_db_server', 'hosting_package', 'hosting_server',
@@ -25,16 +25,16 @@ function hostmaster_profile_modules() {
  * @return
  *   An array with keys 'name' and 'description' describing this profile.
  */
-function hostmaster_profile_details() {
+function shopmaster_profile_details() {
   return array(
     'name' => 'Hostmaster',
     'description' => 'Select this profile to manage the installation and maintenance of hosted Drupal sites.'
   );
 }
 
-function hostmaster_profile_tasks(&$task, $url) {
+function shopmaster_profile_tasks(&$task, $url) {
   // Install dependencies
-  install_include(hostmaster_profile_modules());
+  install_include(shopmaster_profile_modules());
 
   // add support for nginx
   if (d()->platform->server->http_service_type === 'nginx') {
@@ -42,17 +42,17 @@ function hostmaster_profile_tasks(&$task, $url) {
   }
 
   // Bootstrap and create all the initial nodes
-  hostmaster_bootstrap();
+  shopmaster_bootstrap();
 
   // Finalize and setup themes, menus, optional modules etc
-  hostmaster_task_finalize();
+  shopmaster_task_finalize();
 }
 
-function hostmaster_bootstrap() {
+function shopmaster_bootstrap() {
   /* Default node types and default node */
   $types =  node_types_rebuild();
 
-  variable_set('install_profile', 'hostmaster');
+  variable_set('install_profile', 'shopmaster');
   // Initialize the hosting defines
   hosting_init();
 
@@ -85,7 +85,7 @@ function hostmaster_bootstrap() {
    'available' => 1,
   ));
 
-  /* examine the db server associated with the hostmaster site */
+  /* examine the db server associated with the shopmaster site */
   $db_server = d()->db_server;
   $master_db = parse_url($db_server->master_db);
   /* if it's not the same server as the master server, create a new node
@@ -151,7 +151,7 @@ function hostmaster_bootstrap() {
   $instance->status = 0;
   hosting_package_instance_save($instance);
 
-  // Create the hostmaster profile node
+  // Create the shopmaster profile node
   $node = new stdClass();
   $node->uid = 1;
   $node->title = 'shopmaster';
@@ -190,8 +190,8 @@ function hostmaster_bootstrap() {
   variable_set('install_url' , $GLOBALS['base_url']);
 }
 
-function hostmaster_task_finalize() {
-  variable_set('install_profile', 'hostmaster');
+function shopmaster_task_finalize() {
+  variable_set('install_profile', 'shopmaster');
   drupal_set_message(st('Configuring menu items'));
 
   install_include(array('menu'));
