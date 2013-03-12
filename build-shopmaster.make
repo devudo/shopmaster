@@ -1,5 +1,11 @@
-; This is here so you can easily build shopmaster aegir after downloading shop_provision.
-; Do not add anything here, add to github.com/devudo/shopmaster/shopmaster.make
+;
+; Use this makefile to build shopmaster properly.
+; Download just this file, then run
+; $ drush make build-shopmaster.make /path/to/target
+;
+; NOTE: This will only rebuild what is pushed to the git repo, not
+; local changes to shopmaster.make!
+;
 
 core = 6.x
 api = 2
