@@ -6,6 +6,11 @@
 ; NOTE: This will only rebuild what is pushed to the git repo, not
 ; local changes to shopmaster.make!
 ;
+; Keep this file up to date with https://github.com/devudo/devudo.github.com / shopmaster.make
+; This way it is available online.
+;
+; Install shopmaster like so: (after SSH access to github is granted)
+; $ drush make http://devudo.github.com/build-shopmaster.make /path/to/target
 
 core = 6.x
 api = 2
