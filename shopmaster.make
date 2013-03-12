@@ -13,8 +13,7 @@ projects[shop_hosting][download][branch] = "master"
 
 ; Contrib
 projects[sshkey][type] = "module"
-projects[cck][type] = "module"
-projects[cck][version] = "6.x-2.9"
+projects[cck][version] = "2.9"
 projects[features][type] = "module"
 projects[views][type] = "module"
 
