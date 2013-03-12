@@ -3,26 +3,17 @@ api = 2
 
 projects[drupal][type] = "core"
 
-
 ; shop_hosting
 projects[shop_hosting][type] = "module"
 projects[shop_hosting][download][type] = "git"
 projects[shop_hosting][download][url] = "git@github.com:devudo/shop_hosting.git"
 projects[shop_hosting][download][branch] = "master"
 
-; shopmaster profile
-projects[shopmaster][type] = "profile"
-projects[shopmaster][download][type] = "git"
-projects[shopmaster][download][url] = "git@github.com:devudo/shopmaster.git"
-projects[shopmaster][download][branch] = "6.x-1.x-profile"
-
-
 ; Contrib
 projects[sshkey][type] = "module"
 projects[cck][type] = "module"
 projects[features][type] = "module"
 projects[views][type] = "module"
-
 
 ; HOSTMASTER CORE
 projects[hostmaster][type] = "profile"
