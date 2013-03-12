@@ -154,10 +154,10 @@ function hostmaster_bootstrap() {
   // Create the hostmaster profile node
   $node = new stdClass();
   $node->uid = 1;
-  $node->title = 'hostmaster';
+  $node->title = 'shopmaster';
   $node->type = 'package';
   $node->package_type = 'profile';
-  $node->short_name = 'hostmaster';
+  $node->short_name = 'shopmaster';
   $node->status = 1;
   node_save($node);
 
@@ -177,7 +177,11 @@ function hostmaster_bootstrap() {
   $node->status = 1;
   node_save($node);
 
-  variable_set('site_frontpage', 'hosting/sites');
+  variable_set('site_frontpage', 'hosting/servers');
+  variable_set('site_name', 'Devudo');
+  variable_set('site_slogan', 'Shopmaster');
+  variable_set('site_mission', 'Welcome to Devudo ShopMaster.  If you are seeing this, you are a part of our alpha testing team.');
+  variable_set('site_footer','&copy; 2013 Devudo Inc, ThinkDrop Consulting LLC');
 
   // do not allow user registration: the signup form will do that
   variable_set('user_register', 0);
@@ -201,27 +205,27 @@ function hostmaster_task_finalize() {
   $item['options'] = unserialize($item['options']);
   install_menu_update_menu_item($item);
 
-  $items = install_menu_get_items('hosting/sites');
-  $item = db_fetch_array(db_query("SELECT * FROM {menu_links} WHERE mlid = %d", $items[0]['mlid']));
-  $item['menu_name'] = $menu_name;
-  $item['customized'] = 1;
-  $item['options'] = unserialize($item['options']);
-  install_menu_update_menu_item($item);
+  //$items = install_menu_get_items('hosting/sites');
+  //$item = db_fetch_array(db_query("SELECT * FROM {menu_links} WHERE mlid = %d", $items[0]['mlid']));
+  //$item['menu_name'] = $menu_name;
+  //$item['customized'] = 1;
+  //$item['options'] = unserialize($item['options']);
+  //install_menu_update_menu_item($item);
 
-  $items = install_menu_get_items('hosting/platforms');
-  $item = db_fetch_array(db_query("SELECT * FROM {menu_links} WHERE mlid = %d", $items[0]['mlid']));
-  $item['menu_name'] = $menu_name;
-  $item['customized'] = 1;
-  $item['options'] = unserialize($item['options']);
-  install_menu_update_menu_item($item);
+  //$items = install_menu_get_items('hosting/platforms');
+  //$item = db_fetch_array(db_query("SELECT * FROM {menu_links} WHERE mlid = %d", $items[0]['mlid']));
+  //$item['menu_name'] = $menu_name;
+  //$item['customized'] = 1;
+  //$item['options'] = unserialize($item['options']);
+  //install_menu_update_menu_item($item);
 
   menu_rebuild();
 
 
   $theme = 'eldir';
-  drupal_set_message(st('Configuring Eldir theme'));
+  drupal_set_message(st('Configuring Bluemarine theme'));
   install_disable_theme('garland');
-  install_default_theme('eldir');
+  install_default_theme('bluemarine');
   system_theme_data();
 
   db_query("DELETE FROM {cache}");
