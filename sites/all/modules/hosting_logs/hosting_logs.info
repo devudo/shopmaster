@@ -1,6 +1,0 @@
-name = Hosting Logs
-description = Provides a site's error and watchdog logs to hostmaster front end.
-core = 6.x
-package = Hosting
-
-dependencies[] = hosting_site
