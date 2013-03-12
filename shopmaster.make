@@ -1,3 +1,5 @@
+; This is here so you can easily build shopmaster aegir after downloading shop_provision.
+
 core = 6.x
 api = 2
 
