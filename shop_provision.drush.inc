@@ -40,8 +40,22 @@ function drush_shop_provision_pre_hosting_task_server_delete(){
   $server_id = $task->ref->devudo_server_info->rackspace_id;
   
   $cmd = "knife rackspace server delete $server_id -P -y";
-  drush_log("[DEVUDO] Deleting server $server_fqdn");
-  shop_exec($cmd);
+  drush_log("[DEVUDO] Attempting to deleting server $server_fqdn");
+  $lines = shop_exec($cmd, 'RUNNING', '', 'lines');
+  // When successful, the last three lines look like this:
+  // [KNIFE] WARNING: Deleted server bb23f28a-c1fc-4e49-9c15-48b1807dc08c
+  // [KNIFE] WARNING: Deleted node ben.devudo.com
+  // [KNIFE] WARNING: Deleted client ben.devudo.com
+  $last_lines = array();
+  $last_line[] = array_pop($lines);
+  $last_line[] = array_pop($lines);
+  $last_line[] = array_pop($lines);
+  if ($last_line[2] == "WARNING: Deleted server $server_id") {
+    drush_log("[DEVUDO] Server Deletion successful!");
+  } else {
+    drush_set_error(SHOP_PROVISION_ERROR, 'Something went wrong when trying to tell rackspace to delete the server! Please review the logs above.');
+  }
+  
 }
 
 /**
