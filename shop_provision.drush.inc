@@ -173,7 +173,7 @@ function shop_get_server($node_name, $options = ' -l'){
 function shop_create_server($server_fqdn, $role = NULL, $rackspace_flavor = 2, $attributes = array()){
   // If no rackspace flavor it is doomed
   if (!$rackspace_flavor) {
-    drush_set_error(SHOP_PROVISION_ERROR, 'No rackspace_flavor found.');
+    drush_log('No rackspace_flavor found!', 'error');
     return;
   }
   
@@ -187,7 +187,7 @@ function shop_create_server($server_fqdn, $role = NULL, $rackspace_flavor = 2, $
   
   // Detect an error:
   if (strpos($lines[0], 'ERROR') === 0){
-    drush_set_error(SHOP_PROVISION_ERROR, 'Error from $ knife rackspace server create: '. $lines[0]);
+    drush_log('Error from $ knife rackspace server create: '. $lines[0], 'error');
     return NULL;
   }
   
