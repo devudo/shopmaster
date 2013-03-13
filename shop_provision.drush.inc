@@ -56,13 +56,14 @@ function drush_shop_provision_pre_hosting_task_server_verify() {
   drush_log("[DEVUDO] Looking for chef node $server_fqdn on chef server", 'ok');
   $chef_node = shop_get_server($server_fqdn);
   $chef_role = $task->ref->field_chef_role[0]['value'];
+  $rackspace_flavor = $task->ref->field_rackspace_flavor[0]['value'];
   
   // CREATE: If no server found, Create & prepare a new server
   if (empty($chef_node)){
     
     // @TODO: Allow flavor to be chosen
     drush_log("[DEVUDO] Chef node not found with name:$server_fqdn. Creating server...", 'warning');
-    $rackspace_id = shop_create_server($server_fqdn, $chef_role, $attributes);
+    $rackspace_id = shop_create_server($server_fqdn, $chef_role, $rackspace_flavor, $attributes);
     drush_log("[DEVUDO] Rackspace ID Detected: $rackspace_id", 'ok');
     $task->ref->rackspace_id = $rackspace_id;
   }
