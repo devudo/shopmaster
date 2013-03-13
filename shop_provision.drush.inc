@@ -72,27 +72,22 @@ function drush_shop_provision_pre_hosting_task_server_verify() {
     
     // @TODO: If we allow changing of role we would do it here...
     
-    drush_log("[DEVUDO] Chef node found with name:$server_fqdn, preparing to update attributes...", 'ok');
+    drush_log("[DEVUDO] Chef node found with name:$server_fqdn", 'ok');
     
-    // Save chef normal attributes from shop.devudo.com server node
-    // @TODO: Learn how to properly save a SINGLE attribute to a node on a chef server.
-    $chef_node->override = $attributes;
-    $chef_node->normal = $attributes;
-
     // Save new json data to file
-    $chef_node_string = json_encode($chef_node);
-    file_put_contents($json_path, $chef_node_string);
-    //drush_register_file_for_deletion($json_path);
+    $attributes_json = json_encode($attributes);
+    file_put_contents($json_path, $attributes_json);
     
-    // Save chef node (on chef server) from file.
-    // @TODO: I think this is causing the loss of system attributes 
-    drush_log('[DEVUDO] Saving chef node from file...', 'ok');
-    shop_exec("knife node from file $json_path");
-    
+    // Sync file to server
+    shop_exec("scp -v $json_path devudo@$server_fqdn:~/attributes.json");
+
+
     // Run chef-client to update the server itself.
-    // NOTE: We don't have to do this on create, I THINK
+    $chef_client_cmd = "sudo /usr/bin/chef-client -j attributes.json";
+    $chef_client_cmd_exec = escapeshellarg($chef_client_cmd);
     drush_log('[DEVUDO] Running chef-client to update the chef node.', 'ok');
-    shop_exec("knife ssh name:$server_fqdn -x devudo 'sudo /usr/bin/chef-client' -a ipaddress");
+    drush_log('[DEVUDO] Chef Client Command: ' . $chef_client_cmd, 'ok');
+    shop_exec("knife ssh name:$server_fqdn -x devudo $chef_client_cmd_exec -a ipaddress");
   }
   
   // Get the newly created or updated chef node from chef server
