@@ -53,7 +53,7 @@ function drush_shop_provision_pre_hosting_task_server_delete(){
   if ($last_line[2] == "WARNING: Deleted server $server_id") {
     drush_log("[DEVUDO] Server Deletion successful!");
   } else {
-    drush_set_error(SHOP_PROVISION_ERROR, 'Something went wrong when trying to tell rackspace to delete the server! Please review the logs above.');
+    drush_log('Something went wrong when trying to tell rackspace to delete the server! Please review the logs above.', 'error');
   }
   
 }
