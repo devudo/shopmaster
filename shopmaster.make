@@ -12,9 +12,16 @@ projects[shop_hosting][download][url] = "git@github.com:devudo/shop_hosting.git"
 projects[shop_hosting][download][branch] = "master"
 
 ; Contrib
+projects[sshkey][subdir] = "contrib"
 projects[sshkey][type] = "module"
+
+projects[cck][subdir] = "contrib"
 projects[cck][version] = "2.9"
+
+projects[features][subdir] = "contrib"
 projects[features][type] = "module"
+
+projects[views][subdir] = "contrib"
 projects[views][type] = "module"
 
 ; HOSTMASTER CORE
