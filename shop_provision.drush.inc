@@ -1,15 +1,16 @@
 <?php
-
-//provision-save
-
+/**
+ * @file shop_provision.drush.inc
+ */
 
 /**
  * Implements drush_HOOK_pre_COMMAND()
  *
- * This runs for each tasks during the command
+ * This runs for each task during the command
  *    drush @hostmaster hosting-tasks
  *
- * NOTE: This ONLY runs when being called from a hostmaster task.
+ * NOTE: This ONLY runs when being called from a hostmaster task,
+ * (ie. via the Hostmaster Drupal Front-end)
  *
  * The server node is available at $task->ref.
  * This node is saved at the end!
@@ -17,8 +18,7 @@
 function drush_shop_provision_pre_hosting_task() {
   // Get Hostmaster Task object
   $task =& drush_get_context('HOSTING_TASK');
-  // NOT READY YET
-  //// On server delete, run the commands 
+  // On server delete, run the commands to actually destroy the server.
   if ($task->ref->type == 'server' && $task->task_type == 'delete') {
     drush_shop_provision_pre_hosting_task_server_delete();
   }
@@ -30,7 +30,7 @@ function drush_shop_provision_pre_hosting_task() {
 }
 
 /**
- * Pre Server Delete
+ * Delete Server: $ knife rackspace server delete
  */
 function drush_shop_provision_pre_hosting_task_server_delete(){
   $task =& drush_get_context('HOSTING_TASK');
@@ -43,7 +43,7 @@ function drush_shop_provision_pre_hosting_task_server_delete(){
 }
 
 /**
- * Pre Server Verify
+ * Verify Server: If no chef node by server name found, $ knife rackspace create
  */
 function drush_shop_provision_pre_hosting_task_server_verify() {
   $task =& drush_get_context('HOSTING_TASK');
@@ -55,18 +55,22 @@ function drush_shop_provision_pre_hosting_task_server_verify() {
   $server_fqdn = $task->ref->title;
   drush_log("[DEVUDO] Looking for chef node $server_fqdn on chef server", 'ok');
   $chef_node = shop_get_server($server_fqdn);
+  $chef_role = $task->ref->field_chef_role[0]['value'];
   
   // CREATE: If no server found, Create & prepare a new server
   if (empty($chef_node)){
     
     // @TODO: Allow flavor to be chosen
     drush_log("[DEVUDO] Chef node not found with name:$server_fqdn. Creating server...", 'warning');
-    $rackspace_id = shop_create_server($server_fqdn, $attributes);
+    $rackspace_id = shop_create_server($server_fqdn, $chef_role, $attributes);
     drush_log("[DEVUDO] Rackspace ID Detected: $rackspace_id", 'ok');
     $task->ref->rackspace_id = $rackspace_id;
   }
   // UPDATE: If a server was found, we will update it's attributes
   else {
+    
+    // @TODO: If we allow changing of role we would do it here...
+    
     drush_log("[DEVUDO] Chef node found with name:$server_fqdn, preparing to update attributes...", 'ok');
     
     // Save chef normal attributes from shop.devudo.com server node
@@ -145,18 +149,19 @@ function shop_exec_json($command, $string = FALSE, $label = "EXEC"){
 }
 
 /**
- * Helper to load a server node from chef server
+ * Helper to load a server node from chef server by name
  */
 function shop_get_server($node_name, $options = ' -l'){
   return shop_exec_json("knife node show $node_name -Fj $options", FALSE, 'KNIFE');
 }
 
 /**
- * Helper to create a server from scratch
+ * Helper to create a server from scratch.  Runs knife rackspace server create 
  */
-function shop_create_server($server_fqdn, $attributes = array()){
+function shop_create_server($server_fqdn, $role = NULL, $attributes = array()){
   $attributes_json = escapeshellarg(json_encode($attributes));
-  $lines = shop_exec("knife rackspace server create -r 'role[devmaster]' --server-name $server_fqdn --image 5cebb13a-f783-4f8c-8058-c4182c724ccd --flavor 2 -Fjson -j $attributes_json", "KNIFE", "CHEF", 'array');
+  $run_list = ($role)? "-r role[$role]": "";
+  $lines = shop_exec("knife rackspace server create $run_list --server-name $server_fqdn --image 5cebb13a-f783-4f8c-8058-c4182c724ccd --flavor 2 -Fjson -j $attributes_json", "KNIFE", "CHEF", 'array');
   
   // @TODO: Will the first line always be our instance id?
   $rackspace_instance_id = str_replace('Instance ID: ', '', $lines[0]);
