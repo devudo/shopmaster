@@ -3,6 +3,8 @@
  * @file shop_provision.drush.inc
  */
 
+define('SHOP_PROVISION_ERROR', 1);
+ 
 /**
  * Implements drush_HOOK_pre_COMMAND()
  *
@@ -155,6 +157,12 @@ function shop_get_server($node_name, $options = ' -l'){
  * Helper to create a server from scratch.  Runs knife rackspace server create 
  */
 function shop_create_server($server_fqdn, $role = NULL, $rackspace_flavor = 2, $attributes = array()){
+  // If no rackspace flavor it is doomed
+  if (!$rackspace_flavor) {
+    drush_set_error(SHOP_PROVISION_ERROR, 'No rackspace_flavor found.');
+    return;
+  }
+  
   $attributes_json = escapeshellarg(json_encode($attributes));
   
   // @TODO: A nice array of options would make sense here.
@@ -162,9 +170,14 @@ function shop_create_server($server_fqdn, $role = NULL, $rackspace_flavor = 2, $
   $options .= " --flavor $rackspace_flavor ";
   $lines = shop_exec("knife rackspace server create $options --server-name $server_fqdn --image 5cebb13a-f783-4f8c-8058-c4182c724ccd -Fjson -j $attributes_json", "KNIFE", "CHEF", 'array');
   
-  // @TODO: Will the first line always be our instance id?
-  $rackspace_instance_id = str_replace('Instance ID: ', '', $lines[0]);
-  return $rackspace_instance_id;
+  // Detect an error:
+  if (strpos($lines[0], 'ERROR') === 0){
+    drush_set_error(SHOP_PROVISION_ERROR, 'Error from $ knife rackspace server create: '. $lines[0]);
+    return NULL;
+  } else {
+    $rackspace_instance_id = str_replace('Instance ID: ', '', $lines[0]);
+    return $rackspace_instance_id;
+  }
 }
 
 /**
