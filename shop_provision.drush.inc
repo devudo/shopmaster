@@ -71,8 +71,10 @@ function drush_shop_provision_pre_hosting_task_server_verify() {
   $server_fqdn = $task->ref->title;
   drush_log("[DEVUDO] Looking for chef node $server_fqdn on chef server", 'ok');
   $chef_node = shop_get_server($server_fqdn);
-  $chef_role = $task->ref->field_chef_role[0]['value'];
-  $rackspace_flavor = $task->ref->field_rackspace_flavor[0]['value'];
+  
+  $server_node = node_load($task->ref->nid);
+  $chef_role = $server_node->field_chef_role[0]['value'];
+  $rackspace_flavor = $server_node->field_rackspace_flavor[0]['value'];
   
   // CREATE: If no server found, Create & prepare a new server
   if (empty($chef_node)){
