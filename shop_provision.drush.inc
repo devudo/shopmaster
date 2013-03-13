@@ -166,7 +166,8 @@ function shop_create_server($server_fqdn, $role = NULL, $rackspace_flavor = 2, $
   $attributes_json = escapeshellarg(json_encode($attributes));
   
   // @TODO: A nice array of options would make sense here.
-  $options = ($role)? "-r role[$role]": "";
+  $run_list = ($role)? "role[$role]": "";
+  $options = ($run_list)? "-r $run_list": "";
   $options .= " --flavor $rackspace_flavor ";
   $lines = shop_exec("knife rackspace server create $options --server-name $server_fqdn --image 5cebb13a-f783-4f8c-8058-c4182c724ccd -Fjson -j $attributes_json", "KNIFE", "CHEF", 'array');
   
@@ -174,10 +175,18 @@ function shop_create_server($server_fqdn, $role = NULL, $rackspace_flavor = 2, $
   if (strpos($lines[0], 'ERROR') === 0){
     drush_set_error(SHOP_PROVISION_ERROR, 'Error from $ knife rackspace server create: '. $lines[0]);
     return NULL;
-  } else {
-    $rackspace_instance_id = str_replace('Instance ID: ', '', $lines[0]);
-    return $rackspace_instance_id;
   }
+  
+  // We are grabbing this here because, surprisingly, chef doesn't store the rackspace ID
+  $rackspace_instance_id = str_replace('Instance ID: ', '', $lines[0]);
+  
+  // Make sure run list is applied.
+  shop_exec("knife node run-list add $server_fqdn $run_list");
+ 
+  // @TODO confirm the server exists with a knife node show.
+  shop_exec("knife node show $server_fqdn");
+  
+  return $rackspace_instance_id;
 }
 
 /**
