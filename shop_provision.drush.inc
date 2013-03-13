@@ -40,7 +40,12 @@ function drush_shop_provision_pre_hosting_task_server_delete(){
   $server_id = $task->ref->devudo_server_info->rackspace_id;
   
   $cmd = "knife rackspace server delete $server_id -P -y";
-  drush_log("[DEVUDO] Attempting to deleting server $server_fqdn");
+  drush_log("[DEVUDO] Attempting to deleting server $server_fqdn, Rackspace ID: $server_id" );
+  
+  if (!$server_id) {
+    drush_log('No server ID!  Without that, I cannot delete the server.', 'error');
+    return;
+  }
   $lines = shop_exec($cmd, 'RUNNING', 'KNIFE', 'lines');
   // When successful, the last three lines look like this:
   // [KNIFE] WARNING: Deleted server bb23f28a-c1fc-4e49-9c15-48b1807dc08c
