@@ -95,7 +95,7 @@ function drush_shop_provision_pre_hosting_task_server_verify() {
     file_put_contents($json_path, $attributes_json);
     
     // Sync file to server
-    shop_exec("scp -v $json_path devudo@$server_fqdn:~/attributes.json");
+    shop_exec("scp $json_path devudo@$server_fqdn:~/attributes.json");
 
 
     // Run chef-client to update the server itself.
