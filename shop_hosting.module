@@ -23,8 +23,10 @@ function shop_hosting_nodeapi_server_load(&$node){
   }
   
   // Get users from the field
-  foreach ($node->field_server_users as $data){
-    $uids[$data['uid']] = $data['uid'];
+  if (!empty($node->field_server_users)){
+    foreach ($node->field_server_users as $data){
+      $uids[$data['uid']] = $data['uid'];
+    }
   }
 
   // for all found UIDs, load up their SSH keys
@@ -53,7 +55,7 @@ function shop_hosting_nodeapi_server_load(&$node){
   $node->attributes->aegir['client_email'] = $account->mail;
   
   // Authorized Keys to add to aegir user
-  $node->attributes->aegir['authorized_keys'] = implode("\n", $ssh_keys);
+  $node->attributes->aegir['authorized_keys'] = implode("\n", $all_keys);
   
   // If there is a devmaster parent, load the attributes needed to connect
   if (isset($node->field_parent_devmaster[0]['nid'])){
