@@ -25,7 +25,7 @@ function shop_hosting_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
   }
   
   // Get users from the field
-  if (!empty($node->field_server_users)){
+  if (!empty($node->field_server_users[0]['uid'])){
     foreach ($node->field_server_users as $data){
       $uids[$data['uid']] = $data['uid'];
     }
@@ -60,7 +60,7 @@ function shop_hosting_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
   $node->attributes->aegir['authorized_keys'] = implode("\n", $all_keys);
   
   // If there is a devmaster parent, load the attributes needed to connect
-  if (!empty($node->field_parent_devmaster)){
+  if (!empty($node->field_parent_devmaster[0]['uid'])){
     $parent_server = node_load($node->field_parent_devmaster[0]['nid']);
     $ip = $parent_server->ip_addresses[0];
     $node->attributes->devudo['devmaster_parent_ip'] =  $ip;
