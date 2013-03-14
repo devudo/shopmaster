@@ -79,6 +79,10 @@ function drush_shop_provision_pre_hosting_task_server_verify() {
   drush_log("[DEVUDO] Looking for chef node $server_fqdn on chef server", 'ok');
   $chef_node = shop_get_server($server_fqdn);
   
+  // @TODO: THIS (the node_load) DOES NOT ALWAYS WORK! field_chef_role not avail.
+  // Happened on first verify of a new devmaster server.
+  // BUT!! When it didn't work, the TASK COMPLETED SUCCESSFULLY.  If this DOES
+  // load the TASK NEVER FINISHES.... could be a clue.
   $server_node = node_load($task->ref->nid);
   $chef_role = $server_node->field_chef_role[0]['value'];
   $rackspace_flavor = $server_node->field_rackspace_flavor[0]['value'];
