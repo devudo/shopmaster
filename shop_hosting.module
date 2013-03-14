@@ -60,7 +60,7 @@ function shop_hosting_nodeapi_server_load(&$node){
   // If there is a devmaster parent, load the attributes needed to connect
     $parent_server = node_load($node->field_parent_devmaster[0]['nid']);
     
-    dsm($parent_server, 'devudo parent');
+    dsm($node->field_parent_devmaster, 'devudo parent');
     $ip = $parent_server->ip_addresses[0];
     $node->attributes->devudo['devmaster_parent_ip'] =  $ip;
 }
