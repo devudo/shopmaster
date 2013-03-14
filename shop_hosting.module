@@ -55,6 +55,11 @@ function shop_hosting_nodeapi_server_load(&$node){
   // Authorized Keys to add to aegir user
   $node->attributes->aegir['authorized_keys'] = implode("\n", $ssh_keys);
   
+  // If there is a devmaster parent, load the attributes needed to connect
+  if (isset($node->field_parent_devmaster[0]['nid'])){
+    $parent_server = node_load($node->field_parent_devmaster[0]['nid']);
+    $node->attributes->devudo['devmaster_parent_ip'] = array_shift($parent_server->ip_addresses);
+  }
 }
 
 /**
