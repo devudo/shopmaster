@@ -106,12 +106,10 @@ function drush_shop_provision_pre_hosting_task_server_verify() {
     // Sync file to server
     shop_exec("scp $json_path devudo@$server_fqdn:~/attributes.json");
 
-
     // Run chef-client to update the server itself.
     $chef_client_cmd = "sudo /usr/bin/chef-client -j attributes.json";
     $chef_client_cmd_exec = escapeshellarg($chef_client_cmd);
-    drush_log('[DEVUDO] Running chef-client to update the chef node.', 'ok');
-    drush_log('[DEVUDO] Chef Client Command: ' . $chef_client_cmd, 'ok');
+    drush_log("[DEVUDO] Running chef-client on $server_fqdn:", 'notice');
     shop_exec("knife ssh name:$server_fqdn -x devudo $chef_client_cmd_exec -a ipaddress");
   }
   
