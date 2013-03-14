@@ -80,7 +80,8 @@ function drush_shop_provision_pre_hosting_task_server_verify() {
   $chef_node = shop_get_server($server_fqdn);
   
   // @TODO: THIS (the node_load) DOES NOT ALWAYS WORK! field_chef_role not avail.
-  // Happened on first verify of a new devmaster server.
+  // 3-14-2013 Happened on first verify of a new devmaster server.
+  //           Did NOT happen on next verify of that server.  Successfully created server.
   // BUT!! When it didn't work, the TASK COMPLETED SUCCESSFULLY.  If this DOES
   // load the TASK NEVER FINISHES.... could be a clue.
   $server_node = node_load($task->ref->nid);
@@ -196,17 +197,17 @@ function shop_create_server($server_fqdn, $role = NULL, $rackspace_flavor = 2, $
   $options .= " --flavor $rackspace_flavor ";
   $lines = shop_exec("knife rackspace server create $options --server-name $server_fqdn --image 5cebb13a-f783-4f8c-8058-c4182c724ccd -Fjson -j $attributes_json", "KNIFE", "CHEF", 'array');
   
-  // Detect an error:
-  if (strpos($lines[0], 'ERROR') === 0){
-    drush_log('Error from $ knife rackspace server create: '. $lines[0], 'error');
-    return NULL;
-  }
+  //// Detect an error:
+  //if (strpos($lines[0], 'ERROR') === 0){
+  //  drush_log('Error from $ knife rackspace server create: '. $lines[0], 'error');
+  //  return NULL;
+  //}
   
   // We are grabbing this here because, surprisingly, chef doesn't store the rackspace ID
   $rackspace_instance_id = str_replace('Instance ID: ', '', $lines[0]);
   
   // Make sure run list is applied.
-  shop_exec("knife node run-list add $server_fqdn $run_list");
+  //shop_exec("knife node run-list add $server_fqdn $run_list");
  
   // @TODO confirm the server exists with a knife node show.
   shop_exec("knife node show $server_fqdn");
