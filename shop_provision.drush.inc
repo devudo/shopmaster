@@ -56,9 +56,9 @@ function drush_shop_provision_pre_hosting_task_server_delete(){
   $last_line[] = array_pop($lines);
   $last_line[] = array_pop($lines);
   if ($last_line[2] == "[KNIFE] WARNING: Deleted server $server_id") {
-    drush_log("[DEVUDO] Server Deletion successful!");
+    drush_log("[DEVUDO] Server Deletion successful!", 'ok');
   } else {
-    drush_log("last line == ? " . $last_line[2]);
+    drush_log("last line == ? " . $last_line[2], 'notice');
     drush_log('Something went wrong when trying to tell rackspace to delete the server! Please review the logs above.', 'error');
   }
   
@@ -70,11 +70,12 @@ function drush_shop_provision_pre_hosting_task_server_delete(){
 function drush_shop_provision_pre_hosting_task_server_verify() {
   $task =& drush_get_context('HOSTING_TASK');
 
+  // Get some vars and attributes
+  $server_fqdn = $task->ref->title;
   $attributes = $task->ref->attributes;
   $json_path = "/tmp/$server_fqdn.json";
   
   // Look for this chef node on Chef Server
-  $server_fqdn = $task->ref->title;
   drush_log("[DEVUDO] Looking for chef node $server_fqdn on chef server", 'ok');
   $chef_node = shop_get_server($server_fqdn);
   
