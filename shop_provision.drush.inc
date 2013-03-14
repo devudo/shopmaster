@@ -145,6 +145,14 @@ function drush_shop_provision_pre_hosting_task_server_verify() {
   } else {
     
   }
+  
+  // @TODO: If this was a livemaster server with a devmaster parent, grab the
+  // livemaster mysql root password and devmaster_parent_ip, and save it to the
+  // server context! (drush alias)
+  // Then, sync the server alias to the devmaster_parent server, then run
+  // @hostmater hosting-import "@server_NAME"!  Then, if all goes well,
+  // Devmaster will verify the server, be able to connect and create DBs, and
+  // restart NGINX!
 }
 
 /**
