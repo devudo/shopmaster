@@ -58,10 +58,10 @@ function shop_hosting_nodeapi_server_load(&$node){
   $node->attributes->aegir['authorized_keys'] = implode("\n", $all_keys);
   
   // If there is a devmaster parent, load the attributes needed to connect
-  $node->attributes->devudo['devmaster_parent_ip'] = 'NA';
   if (!empty($node->field_parent_devmaster)){
     $parent_server = node_load($node->field_parent_devmaster[0]['nid']);
-    $node->attributes->devudo['devmaster_parent_ip'] = array_shift($parent_server->ip_addresses);
+    $ip = 'hi'. array_shift($parent_server->ip_addresses);
+    $node->attributes->devudo['devmaster_parent_ip'] =  $ip;
   }
 }
 
