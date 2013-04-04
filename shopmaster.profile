@@ -13,9 +13,10 @@ function shopmaster_profile_modules() {
     /* aegir contrib */ 'hosting', 'hosting_task', 'hosting_client', 'hosting_db_server', 'hosting_package', 'hosting_server',
     
     /* DEVUDO */
-    'shop_hosting', 'content', 'views',
+    'shop_hosting', 'content', 'views', 'sshkey',
     
-    /* other contrib */ 'install_profile_api' /* needs >= 2.1 */, 'jquery_ui', 'modalframe', 'admin_menu',
+    /* other contrib */
+    'install_profile_api' /* needs >= 2.1 */, 'jquery_ui', 'modalframe', 'admin_menu',
   );
 }
 
