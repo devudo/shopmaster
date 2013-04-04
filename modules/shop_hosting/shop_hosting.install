@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * Implementation of hook_schema().
+ */
+function shop_hosting_schema() {
+  $schema['devudo_server_info'] = array(
+    'fields' => array(
+      'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'rackspace_id' => array(
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('nid'),
+  );
+  return $schema;
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function shop_hosting_install() {  
+  // Destroy tables.
+  drupal_install_schema('shop_hosting');
+}

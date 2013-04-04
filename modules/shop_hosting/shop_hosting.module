@@ -1,0 +1,207 @@
+<?php
+/**
+ * @file
+ * shop_hosting.module
+ */
+
+/**
+ * Implements hook_nodeapi_TYPE_OP()
+ * CHEF NODE ATTRIBUTES get loaded in here.
+ * Load attributes into our server node here.
+ */
+function shop_hosting_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  // Only run if loading a server
+  if ($op != "load" && $node->type != 'server') return;
+  
+  // Build attributes object
+  $node->attributes = new stdClass;
+
+  // Add server users: any users with role "administrator"
+  $admin_role = variable_get('shop_server_admin_role', 'administrator');
+  $admins = db_query('SELECT u.name, u.uid FROM users u LEFT JOIN {users_roles} ur on u.uid = ur.uid LEFT JOIN role r ON ur.rid = r.rid WHERE r.name = "%s" OR u.uid = 1 OR u.uid = %d', $admin_role, $node->uid);
+  $uids = array();
+  while ($account = db_fetch_object($admins)){
+    $uids[$account->uid] = $account->uid;
+  }
+  
+  // Get users from the field
+  if (!empty($node->field_server_users[0]['uid'])){
+    foreach ($node->field_server_users as $data){
+      $uids[$data['uid']] = $data['uid'];
+    }
+  }
+
+  // for all found UIDs, load up their SSH keys
+  $all_keys = array();
+  foreach ($uids as $uid){
+    $account = user_load($uid);
+    $account_keys = array();
+    $keys = sshkey_load_all_by_entity('user', $account->uid);
+    foreach ($keys as $key){
+      $all_keys[] = $key->value;
+      $account_keys[] = $key->value;
+    }
+    // Adding each users authorized key.  Each item in this array gets a server account.
+    $node->attributes->devudo['users'][$account->name] = implode("\n", $account_keys);
+  }
+  
+  // Add this servers public key to devudo user.
+  $node->attributes->devudo['users']['devudo'] = variable_get('shopmaster_ssh_public_key', '');
+
+  // Load server info
+  $info = db_query('SELECT * from {devudo_server_info} WHERE nid = %d', $node->nid);
+  $node->devudo_server_info = db_fetch_object($info);
+  
+  // Adding the author of the node as the admin user on the devshop
+  $account = user_load($node->uid);
+  $node->attributes->aegir['client_email'] = $account->mail;
+  
+  // Authorized Keys to add to aegir user
+  $node->attributes->aegir['authorized_keys'] = implode("\n", $all_keys);
+  
+  // If there is a devmaster parent, load the attributes needed to connect
+  if (!empty($node->field_parent_devmaster[0]['nid'])){
+    $parent_server = node_load($node->field_parent_devmaster[0]['nid']);
+    $ip = $parent_server->ip_addresses[0];
+    $node->attributes->devudo['devmaster_parent_ip'] =  $ip;
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function shop_hosting_form_alter(&$form, &$form_state, $form_id){
+  if ($form_id == 'server_node_form') {
+    $form['rackspace_id'] = array(
+      '#title' => t('Rackspace Server ID'),
+      '#description' => t('You really shouldn\'t be editing here...'),
+      '#type' => 'textfield',
+      '#default_value' => $form['#node']->devudo_server_info->rackspace_id,
+    );
+    
+    // If there is no server info, tell the update function to insert.
+    if (empty($form['#node']->devudo_server_info)){
+      $form['devudo_needs_insert'] = array(
+        '#type' => 'value',
+        '#value' => TRUE,
+      );
+    }
+  }
+}
+
+function shop_hosting_hosting_tasks_alter(&$tasks) {
+  
+}
+function shop_hosting_hosting_tasks() {
+  $tasks = array(
+    'server' => array(
+      'delete' => array(
+        'title' => t('Delete'), 
+        'description' => t('Destroy this server.'), 
+        'dialog' => TRUE,
+      ),
+    ),
+  );
+  return $tasks;
+}
+
+/**
+ * Implements hook_nodeapi_TYPE_OP()
+ * Load attributes into our server node here.
+ */
+function shop_hosting_nodeapi_server_insert(&$node){
+  // Notify me when a new server gets added... We still have to
+  // do manual DNS!!
+  // @TODO: Add notifications or rules or some module to do this.
+  $subject =  "[DEVUDO] A new server has been created: $node->title";
+  $body = "Someone created $node->title.  Please visit http://mycloud.rackspace.com to add a DNS entry for the server that gets created.";
+  $to = 'jon@thinkdrop.net';
+  mail($to, $subject, $body);
+
+  db_query('INSERT INTO {devudo_server_info} (rackspace_id, nid) VALUES ("%s", %d)', $node->rackspace_id, $node->nid);
+}
+
+/**
+ * Implements hook_nodeapi_TYPE_OP()
+ * Load attributes into our server node here.
+ */
+function shop_hosting_nodeapi_server_update(&$node){
+  if (!empty($node->rackspace_id)){
+    if ($node->devudo_needs_insert){
+      shop_hosting_nodeapi_server_insert($node);
+    } else {
+      db_query('UPDATE {devudo_server_info} SET rackspace_id = "%s" WHERE nid = %d', $node->rackspace_id, $node->nid);
+    }
+  }
+}
+
+
+/**
+ * Implements hook_nodeapi_TYPE_OP()
+ */
+function shop_hosting_nodeapi_server_view(&$node){
+  
+  // Rough display of attributes.
+  $node->content['attributes'] = array(
+    '#type' => 'item',
+    '#title' => t('Chef Attributes'),
+    '#value' => kpr($node->attributes, 1),
+  );
+  
+  // Show users who have been granted access
+  $users = array_keys($node->attributes->devudo['users']);
+  $users_links = array();
+  
+  foreach ($users as $username){
+    if ($username != 'devudo') {
+      $account = user_load(array('name' => $username));
+      $users_links[$username] = theme_username($account);  
+    }
+  }
+  $node->content['users'] = array(
+    '#type' => 'item',
+    '#title' => t('Users'),
+    '#value' => theme('item_list', $users_links),
+    '#description' => t('All administrators of this site and the creator of this server are granted access.'),
+  );
+  
+  // Show rackspace server ID
+   $node->content['rackspace_id'] = array(
+    '#type' => 'item',
+    '#title' => t('Rackspace Server ID'),
+    '#value' => empty($node->devudo_server_info->rackspace_id)? t('Unknown'): $node->devudo_server_info->rackspace_id,
+    '#description' => t('The rackspace cloud server id.'),
+  );
+   
+  // Show a nice link
+  $url = "http://$node->title";
+  $node->content['link'] = array(
+    '#type' => 'item',
+    '#title' => t('Goto'),
+    '#value' => l($url, $url, array('attributes' => array('target' => '_blank'))),
+    '#description' => t('The URL of this Devudo DevShop.'),
+    '#weight' => -10,
+  );
+  
+  
+  // SHOW TIP IF PUBLIC KEY IS NOT AVAILABLE
+  // Display helpful tips for connecting.
+  $pubkey = variable_get('shopmaster_ssh_public_key', '');
+  
+  // If we don't yet have the server's public key saved as a variable...
+  if (empty($pubkey)){
+    $output = t("Please save this server's public key to a variable.  On your server, run the following command and then reload this page..");
+    $command = 'drush @hostmaster vset shopmaster_ssh_public_key "$(cat ~/.ssh/id_rsa.pub)" --yes';
+
+    $output .= "<div class='command'><input size='160' value='$command' onclick='this.select()' /></div>";
+  } else {
+    $output = t('Ready');
+  }
+  
+   $node->content['connect'] = array(
+    '#type' => 'item',
+    '#title' => t('Shopmaster Access'),
+    '#description' => $output,
+  );
+  
+}
