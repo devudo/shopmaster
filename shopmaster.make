@@ -7,6 +7,7 @@ api = 2
 projects[drupal][type] = "core"
 
 ; Contrib
+projects[adminrole][subdir] = "contrib"
 projects[sshkey][subdir] = "contrib"
 
 projects[cck][subdir] = "contrib"
@@ -23,4 +24,6 @@ projects[devel][subdir] = "devel"
 ; HOSTMASTER CORE
 ; This automatically inherits hostmaster's make file
 ; we don't have to worry about anything already included in hostmaster
-projects[hostmaster][type] = "profile"
+projects[hostmaster][type] = "module"
+projects[views][subdir] = "hostmaster"
+
