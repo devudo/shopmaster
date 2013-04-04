@@ -25,5 +25,5 @@ projects[devel][subdir] = "devel"
 ; This automatically inherits hostmaster's make file
 ; we don't have to worry about anything already included in hostmaster
 projects[hostmaster][type] = "module"
-projects[views][subdir] = "hostmaster"
+projects[hostmaster][subdir] = "hostmaster"
 
