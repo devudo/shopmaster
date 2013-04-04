@@ -26,6 +26,5 @@ projects[devel][subdir] = "devel"
 ; we don't have to worry about anything already included in hostmaster
 projects[hostmaster][type] = "module"
 projects[hostmaster][download][type] = "git"
-projects[hostmaster][subdir] = "hostmaster"
 projects[hostmaster][download][branch] = "6.x-1.x"
 
