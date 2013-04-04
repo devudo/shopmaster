@@ -1,28 +1,24 @@
-; NOTE!  Since the name shopmaster matches the project (profile), anything in here goes into profiles/shopmaster/modules etc!
+; NOTE!  Since the name shopmaster matches the project (profile),
+; anything in here goes into profiles/shopmaster/modules etc!
 
 core = 6.x
 api = 2
 
 projects[drupal][type] = "core"
 
-; shop_hosting
-projects[shop_hosting][type] = "module"
-projects[shop_hosting][download][type] = "git"
-projects[shop_hosting][download][url] = "git@github.com:devudo/shop_hosting.git"
-projects[shop_hosting][download][branch] = "master"
-
 ; Contrib
 projects[sshkey][subdir] = "contrib"
-projects[sshkey][type] = "module"
 
 projects[cck][subdir] = "contrib"
 projects[cck][version] = "2.9"
 
 projects[features][subdir] = "contrib"
-projects[features][type] = "module"
 
 projects[views][subdir] = "contrib"
-projects[views][type] = "module"
+
+; Dev
+projects[devel][subdir] = "devel"
+
 
 ; HOSTMASTER CORE
 ; This automatically inherits hostmaster's make file
