@@ -7,6 +7,13 @@
 include('shop_hosting.sshkey.inc');
 
 /**
+ * Implements hook_perm()
+ */
+function shop_hosting_perm(){
+  return array('access all servers');
+}
+
+/**
  * Implements hook_nodeapi_TYPE_OP()
  * CHEF NODE ATTRIBUTES get loaded in here.
  * Load attributes into our server node here.
