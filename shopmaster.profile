@@ -10,16 +10,17 @@
 function shopmaster_profile_modules() {
   return array(
     /* core */ 'block', 'color', 'filter', 'help', 'menu', 'node', 'system', 'user',
-    /* aegir contrib */ 'hosting', 'hosting_task', 'hosting_client', 'hosting_db_server', 'hosting_package', 'hosting_server',
+    /* aegir contrib */ 'hosting', 'hosting_task', 'hosting_client', 'hosting_package', 'hosting_server',
+    'install_profile_api' /* needs >= 2.1 */, 'jquery_ui', 'modalframe', 'admin_menu',
     
     /* DEVUDO */
-    'shop_hosting', 'content', 'views', 'sshkey', 'features',
+    'shop_hosting', 
     
     /* Features */
     'shop_servers', 'shop_users',
     
     /* other contrib */
-    'install_profile_api' /* needs >= 2.1 */, 'jquery_ui', 'modalframe', 'admin_menu',
+    'content', 'views', 'sshkey', 'features', 'admin_role',
   );
 }
 
@@ -225,7 +226,6 @@ function shopmaster_task_finalize() {
 
   menu_rebuild();
 
-
   $theme = 'eldir';
   drupal_set_message(st('Configuring Bluemarine theme'));
   install_disable_theme('garland');
@@ -237,16 +237,9 @@ function shopmaster_task_finalize() {
   drupal_set_message(st('Configuring default blocks'));
   install_add_block('hosting', 'hosting_queues', $theme, 1, 5, 'right', 1);
 
-  drupal_set_message(st('Configuring roles'));
-  install_remove_permissions(install_get_rid('anonymous user'), array('access content', 'access all views'));
-  install_remove_permissions(install_get_rid('authenticated user'), array('access content', 'access all views'));
-  install_add_permissions(install_get_rid('anonymous user'), array('access disabled sites'));
-  install_add_permissions(install_get_rid('authenticated user'), array('access disabled sites'));
-  install_add_role('aegir client');
-  // @todo we may need to have a hook here to consider plugins
-  install_add_permissions(install_get_rid('aegir client'), array('access content', 'access all views', 'edit own client', 'view client', 'create site', 'delete site', 'view site', 'create backup task', 'create delete task', 'create disable task', 'create enable task', 'create restore task', 'view own tasks', 'view task', 'cancel own tasks'));
-  install_add_role('aegir account manager');
-  install_add_permissions(install_get_rid('aegir account manager'), array('create client', 'edit client users', 'view client'));
-
   node_access_rebuild();
+  features_revert();
+  features_revert();
+  cache_clear_all();
+  cache_clear_all();
 }
