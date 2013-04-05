@@ -87,6 +87,17 @@ function shop_hosting_form_alter(&$form, &$form_state, $form_id){
       '#default_value' => $form['#node']->devudo_server_info->rackspace_id,
     );
     
+    // Hide some things
+    if ($form['#node']->nid){
+      $form['title']['#access'] = FALSE;
+      $form['field_chef_role']['#access'] = FALSE;
+      $form['field_rackspace_flavor']['#access'] = FALSE;
+      $form['field_parent_devmaster']['#access'] = FALSE;
+    }
+    
+    // Always hide IPs
+    $form['ip_addresses']['#access'] = FALSE;
+    
     // If there is no server info, tell the update function to insert.
     if (empty($form['#node']->devudo_server_info)){
       $form['devudo_needs_insert'] = array(
