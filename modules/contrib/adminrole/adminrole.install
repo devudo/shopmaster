@@ -12,13 +12,10 @@
 function adminrole_install() {
   // Check if there is an existing 'admin' named role. If so, do not add a new
   // administrator role.
-  $rid = db_query("SELECT 1 FROM {role} WHERE name LIKE 'admin%%'");
+  $rid = db_result(db_query_range("SELECT 1 FROM {role} WHERE name LIKE 'admin%%'", 0, 1));
   if (!$rid) {
-    $rid = db_insert('role')
-      ->fields(array(
-        'name' => 'administrator',
-      ))
-      ->execute();
+    db_query("INSERT INTO {role} (name) VALUES ('%s')", 'administrator');
+    $rid = db_last_insert_id('role', 'rid');
     variable_set('user_admin_role', $rid);
     drupal_set_message(t('A new user role of <em>administrator</em> has been added. Its permissions will be automatically managed by the Admin role module.'));
   }
@@ -40,3 +37,11 @@ function adminrole_uninstall() {
   variable_del('adminrole_exclude_permissions');
 }
 
+/**
+ * Change the variable adminrole_adminrole to user_admin_role.
+ */
+function adminrole_update_5100() {
+  variable_set('user_admin_role', variable_get('adminrole_adminrole', 0));
+  variable_del('adminrole_adminrole');
+  return array();
+}
