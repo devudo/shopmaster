@@ -6,27 +6,9 @@ api = 2
 
 projects[drupal][type] = "core"
 
-; Contrib
-projects[adminrole][subdir] = "contrib"
-
-projects[services][subdir] = "contrib"
-
-projects[sshkey][subdir] = "contrib"
-
-projects[cck][subdir] = "contrib"
-
-projects[features][subdir] = "contrib"
-
-projects[views][subdir] = "contrib"
-
-; Dev
-projects[devel][subdir] = "devel"
-
-
-; HOSTMASTER CORE
-; This automatically inherits hostmaster's make file
-; we don't have to worry about anything already included in hostmaster
-projects[hostmaster][type] = "module"
-projects[hostmaster][download][type] = "git"
-projects[hostmaster][download][branch] = "6.x-1.x"
-
+; We removed all contrib stuff from this makefile because the makefile isn't good
+; for deploying updates.  You would have to drush make a new platform and then
+; migrate the existing site.
+;
+; Instead, please put all modules into the shopmaster repo itself, and we will
+; update with git-pull-recursive
