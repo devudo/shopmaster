@@ -10,7 +10,7 @@
 function shopmaster_profile_modules() {
   return array(
     /* core */ 'block', 'color', 'filter', 'help', 'menu', 'node', 'system', 'user',
-    /* aegir contrib */ 'hosting', 'hosting_task', 'hosting_client', 'hosting_package', 'hosting_server',
+    /* aegir contrib */ 'hosting', 'hosting_task', 'hosting_client', 'hosting_package', 'hosting_server', 'hosting_queue_runner',
     'install_profile_api' /* needs >= 2.1 */, 'jquery_ui', 'modalframe', 'admin_menu',
     
     /* DEVUDO */
