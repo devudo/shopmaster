@@ -22,11 +22,13 @@ function drush_shop_provision_pre_hosting_task() {
   $task =& drush_get_context('HOSTING_TASK');
   // On server delete, run the commands to actually destroy the server.
   if ($task->ref->type == 'server' && $task->task_type == 'delete') {
+    drush_log('[DEVUDO] Running drush_shop_provision_pre_hosting_task_server_delete()', 'notice');
     drush_shop_provision_pre_hosting_task_server_delete();
   }
   
   // On server verify: we will create or update our server
   if ($task->ref->type == 'server' && $task->task_type == 'verify') {
+    drush_log('[DEVUDO] Running drush_shop_provision_pre_hosting_task_server_verify()', 'notice');
     drush_shop_provision_pre_hosting_task_server_verify();
   }
 }
@@ -43,8 +45,7 @@ function drush_shop_provision_pre_hosting_task_server_delete(){
   drush_log("[DEVUDO] Attempting to deleting server $server_fqdn, Rackspace ID: $server_id" );
   
   if (!$server_id) {
-    drush_log('No server ID!  Without that, I cannot delete the server.', 'error');
-    return;
+    return drush_set_error('DEVUDO_RACKSPACE_ERROR', dt('No server ID!  Without that, I cannot delete the server.'));
   }
   $lines = shop_exec($cmd, 'RUNNING', 'KNIFE', 'lines');
   // When successful, the last three lines look like this:
@@ -59,7 +60,7 @@ function drush_shop_provision_pre_hosting_task_server_delete(){
     drush_log("[DEVUDO] Server Deletion successful!", 'ok');
   } else {
     drush_log("last line == ? " . $last_line[2], 'notice');
-    drush_log('Something went wrong when trying to tell rackspace to delete the server! Please review the logs above.', 'error');
+    return drush_set_error('DRUSH_FRAMEWORK_ERROR', dt('Something went wrong when trying to tell rackspace to delete the server! Please review the logs above.'));
   }
   
 }
@@ -84,18 +85,22 @@ function drush_shop_provision_pre_hosting_task_server_verify() {
   //           Did NOT happen on next verify of that server.  Successfully created server.
   // BUT!! When it didn't work, the TASK COMPLETED SUCCESSFULLY.  If this DOES
   // load the TASK NEVER FINISHES.... could be a clue.
-  $server_node = node_load($task->ref->nid);
-  $chef_role = $server_node->field_chef_role[0]['value'];
-  $rackspace_flavor = $server_node->field_rackspace_flavor[0]['value'];
-  
+  //$server_node = node_load($task->ref->nid);
+  $server_node = $task->ref;
+  drush_log("[DEVUDO] SERVER NODE: " . print_r($server_node, 1), 'notice');
+
   // CREATE: If no server found, Create & prepare a new server
   if (empty($chef_node)){
     
     // @TODO: Allow flavor to be chosen
     drush_log("[DEVUDO] Chef node not found with name:$server_fqdn. Creating server...", 'warning');
-    $rackspace_id = shop_create_server($server_fqdn, $chef_role, $rackspace_flavor, $attributes);
-    drush_log("[DEVUDO] Rackspace ID Detected: $rackspace_id", 'ok');
-    $task->ref->rackspace_id = $rackspace_id;
+    if ($rackspace_id = shop_create_server($server_fqdn, $attributes)){
+      drush_log("[DEVUDO] Rackspace ID Detected: $rackspace_id", 'ok');
+      $task->ref->rackspace_id = $rackspace_id;  
+    } else {
+      return drush_set_error('DEVUDO_SERVER_CREATE', dt('Something went wrong trying to create a server on Rackspace.'));
+    }
+    
   }
   // UPDATE: If a server was found, we will update it's attributes
   else {
@@ -190,11 +195,13 @@ function shop_get_server($node_name, $options = ' -l'){
 /**
  * Helper to create a server from scratch.  Runs knife rackspace server create 
  */
-function shop_create_server($server_fqdn, $role = NULL, $rackspace_flavor = 2, $attributes = array()){
+function shop_create_server($server_fqdn, $attributes = array()){
+  $role = $attributes->devudo['chef_role'];
+  $rackspace_flavor = $attributes->devudo['rackspace_flavor'];
+
   // If no rackspace flavor it is doomed
   if (!$rackspace_flavor) {
-    drush_log('No rackspace_flavor found!', 'error');
-    return;
+    return drush_set_error('DEVUDO_RACKSPACE_CREATE', dt('No rackspace_flavor found!'));
   }
   
   $attributes_json = escapeshellarg(json_encode($attributes));
