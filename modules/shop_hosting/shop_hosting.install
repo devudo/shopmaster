@@ -27,6 +27,18 @@ function shop_hosting_schema() {
  * Implementation of hook_uninstall().
  */
 function shop_hosting_install() {  
-  // Destroy tables.
+  // Install schema.
   drupal_install_schema('shop_hosting');
+  
+  // Set weight
+  db_query("UPDATE {system} SET weight = 1 WHERE type = 'module' AND name = 'shop_hosting'");
+}
+
+/**
+ * Puts shop_hosting after cck
+ */
+function shop_hosting_update_6000() {
+  $ret = array();
+  $ret[] = update_sql("UPDATE {system} SET weight = 1 WHERE type = 'module' AND name = 'shop_hosting'");
+  return $ret;
 }
