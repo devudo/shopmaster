@@ -1,0 +1,12 @@
+name = Hosting queue runner
+description = Allows the hosting queue to be run in a daemon.
+package = Hosting
+dependencies[] = hosting
+core = 6.x
+
+; Information added by drupal.org packaging script on 2012-06-28
+version = "6.x-1.2"
+core = "6.x"
+project = "hosting_queue_runner"
+datestamp = "1340916708"
+

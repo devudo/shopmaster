@@ -4,6 +4,8 @@
  * shop_hosting.module
  */
 
+include('shop_hosting.sshkey.inc');
+
 /**
  * Implements hook_nodeapi_TYPE_OP()
  * CHEF NODE ATTRIBUTES get loaded in here.
