@@ -19,7 +19,7 @@ function shop_hosting_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
   $node->attributes = new stdClass;
 
   // Add server users: any users with role "administrator"
-  $admin_role = variable_get('shop_server_admin_role', 'administrator');
+  $admin_role = variable_get('user_admin_role', 'administrator');
   $admins = db_query('SELECT u.name, u.uid FROM users u LEFT JOIN {users_roles} ur on u.uid = ur.uid LEFT JOIN role r ON ur.rid = r.rid WHERE r.name = "%s" OR u.uid = 1 OR u.uid = %d', $admin_role, $node->uid);
   $uids = array();
   while ($account = db_fetch_object($admins)){
@@ -91,9 +91,9 @@ function shop_hosting_form_alter(&$form, &$form_state, $form_id){
   }
 }
 
-function shop_hosting_hosting_tasks_alter(&$tasks) {
-  
-}
+/**
+ * Implements hook_hosting_tasks()
+ */
 function shop_hosting_hosting_tasks() {
   $tasks = array(
     'server' => array(
