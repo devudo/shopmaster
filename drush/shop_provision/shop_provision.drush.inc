@@ -3,92 +3,53 @@
  * @file shop_provision.drush.inc
  */
 
-define('SHOP_PROVISION_ERROR', 1);
- 
+/*********
+ * TASKS *
+ ********/
+
 /**
  * Implements drush_HOOK_pre_COMMAND()
- *
- * This runs for each task during the command
- *    drush @hostmaster hosting-tasks
- *
- * NOTE: This ONLY runs when being called from a hostmaster task,
- * (ie. via the Hostmaster Drupal Front-end)
- *
- * The server node is available at $task->ref.
- * This node is saved at the end!
+ *   for provision-verify
  */
-function drush_shop_provision_pre_hosting_task() {
-  // Get Hostmaster Task object
-  $task =& drush_get_context('HOSTING_TASK');
-  // On server delete, run the commands to actually destroy the server.
-  if ($task->ref->type == 'server' && $task->task_type == 'delete') {
-    drush_log('[DEVUDO] Running drush_shop_provision_pre_hosting_task_server_delete()', 'notice');
-    drush_shop_provision_pre_hosting_task_server_delete();
-  }
-  
+function drush_shop_provision_pre_provision_verify() {
+
   // On server verify: we will create or update our server
-  if ($task->ref->type == 'server' && $task->task_type == 'verify') {
-    drush_log('[DEVUDO] Running drush_shop_provision_pre_hosting_task_server_verify()', 'notice');
-    drush_shop_provision_pre_hosting_task_server_verify();
+  if (d()->context_type == 'server') {
+    drush_log('[DEVUDO] Verifying devudo server...', 'notice');
+    return shop_provision_verify_server();
   }
 }
 
 /**
- * Delete Server: $ knife rackspace server delete
+ * Implements drush_HOOK_pre_COMMAND()
+ *   for provision-delete
  */
-function drush_shop_provision_pre_hosting_task_server_delete(){
-  $task =& drush_get_context('HOSTING_TASK');
-  $server_fqdn = $task->ref->title;
-  $server_id = $task->ref->devudo_server_info->rackspace_id;
-  
-  $cmd = "knife rackspace server delete $server_id -P -y";
-  drush_log("[DEVUDO] Attempting to deleting server $server_fqdn, Rackspace ID: $server_id" );
-  
-  if (!$server_id) {
-    return drush_set_error('DEVUDO_RACKSPACE_ERROR', dt('No server ID!  Without that, I cannot delete the server.'));
+function drush_shop_provision_pre_provision_delete() {
+  // On server delete, run the commands to actually destroy the server.
+  if (d()->context_type == 'server') {
+    drush_log('[DEVUDO] deleting devudo server...', 'notice');
+    return shop_provision_delete_server();
   }
-  $lines = shop_exec($cmd, 'RUNNING', 'KNIFE', 'lines');
-  // When successful, the last three lines look like this:
-  // [KNIFE] WARNING: Deleted server bb23f28a-c1fc-4e49-9c15-48b1807dc08c
-  // [KNIFE] WARNING: Deleted node ben.devudo.com
-  // [KNIFE] WARNING: Deleted client ben.devudo.com
-  $last_lines = array();
-  $last_line[] = array_pop($lines);
-  $last_line[] = array_pop($lines);
-  $last_line[] = array_pop($lines);
-  if ($last_line[2] == "[KNIFE] WARNING: Deleted server $server_id") {
-    drush_log("[DEVUDO] Server Deletion successful!", 'ok');
-  } else {
-    drush_log("last line == ? " . $last_line[2], 'notice');
-    return drush_set_error('DRUSH_FRAMEWORK_ERROR', dt('Something went wrong when trying to tell rackspace to delete the server! Please review the logs above.'));
-  }
-  
 }
+
+// @TODO: Figure out how to save data returned in shop_provision_verify_server() to
+// The $task-ref node...
+
 
 /**
  * Verify Server: If no chef node by server name found, $ knife rackspace create
  */
-function drush_shop_provision_pre_hosting_task_server_verify() {
-  $task =& drush_get_context('HOSTING_TASK');
+function shop_provision_verify_server() {
 
   // Get some vars and attributes
-  $server_fqdn = $task->ref->title;
-  $attributes = $task->ref->attributes;
+  $server_fqdn = d()->remote_host;
+  $attributes = d()->attributes;
   $json_path = "/tmp/$server_fqdn.json";
   
   // Look for this chef node on Chef Server
   drush_log("[DEVUDO] Looking for chef node $server_fqdn on chef server", 'ok');
   $chef_node = shop_get_server($server_fqdn);
   
-  // @TODO: THIS (the node_load) DOES NOT ALWAYS WORK! field_chef_role not avail.
-  // 3-14-2013 Happened on first verify of a new devmaster server.
-  //           Did NOT happen on next verify of that server.  Successfully created server.
-  // BUT!! When it didn't work, the TASK COMPLETED SUCCESSFULLY.  If this DOES
-  // load the TASK NEVER FINISHES.... could be a clue.
-  //$server_node = node_load($task->ref->nid);
-  $server_node = $task->ref;
-  drush_log("[DEVUDO] SERVER NODE: " . print_r($server_node, 1), 'notice');
-
   // CREATE: If no server found, Create & prepare a new server
   if (empty($chef_node)){
     
@@ -96,7 +57,7 @@ function drush_shop_provision_pre_hosting_task_server_verify() {
     drush_log("[DEVUDO] Chef node not found with name:$server_fqdn. Creating server...", 'warning');
     if ($rackspace_id = shop_create_server($server_fqdn, $attributes)){
       drush_log("[DEVUDO] Rackspace ID Detected: $rackspace_id", 'ok');
-      $task->ref->rackspace_id = $rackspace_id;  
+      d()->rackspace_id = $rackspace_id;  
     } else {
       return drush_set_error('DEVUDO_SERVER_CREATE', dt('Something went wrong trying to create a server on Rackspace.'));
     }
@@ -130,7 +91,7 @@ function drush_shop_provision_pre_hosting_task_server_verify() {
   // @TODO: Should we grab both public and private IPs?
   if (!empty($chef_node->automatic->ipaddress)){
     drush_log('[DEVUDO] ipaddress found in chef node attributes!', 'ok');
-    $task->ref->ip_addresses = array($chef_node->automatic->ipaddress);
+    // $task->ref->ip_addresses = array($chef_node->automatic->ipaddress);
     
     // @TODO: SAVE DNS!!! This will be much slower here...
     // We need to add the DNS record the moment that rackspace
@@ -146,7 +107,7 @@ function drush_shop_provision_pre_hosting_task_server_verify() {
   //   it by using knife rackspace list.
   if (!empty($chef_node->automatic->rackspace)){
     drush_log('[DEVUDO] Rackspace Info found', 'ok');
-    $task->ref->rackspace = $chef_node->automatic->rackspace;
+    // $task->ref->rackspace = $chef_node->automatic->rackspace;
   } else {
     
   }
@@ -159,6 +120,44 @@ function drush_shop_provision_pre_hosting_task_server_verify() {
   // Devmaster will verify the server, be able to connect and create DBs, and
   // restart NGINX!
 }
+
+
+/**
+ * Delete Server: $ knife rackspace server delete
+ */
+function shop_provision_delete_server(){
+  
+  // Get some vars and attributes
+  $server_fqdn = d()->remote_host;
+  $attributes = d()->attributes;
+  $server_id = $attributes->devudo->rackspace_id;
+  
+  $cmd = "knife rackspace server delete $server_id -P -y";
+  drush_log("[DEVUDO] Attempting to delete server $server_fqdn, Rackspace ID: $server_id" );
+  
+  if (!$server_id) {
+    return drush_set_error('DEVUDO_RACKSPACE_ERROR', dt('No server ID!  Without that, I cannot delete the server.'));
+  }
+  $lines = shop_exec($cmd, 'RUNNING', 'KNIFE', 'lines');
+  // When successful, the last three lines look like this:
+  // [KNIFE] WARNING: Deleted server bb23f28a-c1fc-4e49-9c15-48b1807dc08c
+  // [KNIFE] WARNING: Deleted node ben.devudo.com
+  // [KNIFE] WARNING: Deleted client ben.devudo.com
+  $last_lines = array();
+  $last_line[] = array_pop($lines);
+  $last_line[] = array_pop($lines);
+  $last_line[] = array_pop($lines);
+  if ($last_line[2] == "[KNIFE] WARNING: Deleted server $server_id") {
+    drush_log("[DEVUDO] Server Deletion successful!", 'ok');
+  } else {
+    drush_log("last line == ? " . $last_line[2], 'notice');
+    return drush_set_error('DRUSH_FRAMEWORK_ERROR', dt('Something went wrong when trying to tell rackspace to delete the server! Please review the logs above.'));
+  }
+}
+
+/*********
+ * TOOLS *
+ ********/
 
 /**
  * Helpful Exec
