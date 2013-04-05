@@ -125,6 +125,19 @@ function shop_hosting_hosting_tasks() {
 }
 
 /**
+ * Implements hook_hosting_tasks()
+ */
+function shop_hosting_hosting_tasks_alter(&$tasks) {
+
+  // On a server node page, hide delete and verify tasks
+  $node = menu_get_object();
+  if ($node->type == 'server' && $node->type != 1){
+    $tasks['server']['verify']['hidden'] =  TRUE;
+    $tasks['server']['delete']['hidden'] =  TRUE;
+  }
+}
+
+/**
  * Implements hook_nodeapi_TYPE_OP()
  * Load attributes into our server node here.
  */
