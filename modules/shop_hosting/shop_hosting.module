@@ -17,13 +17,19 @@ function shop_hosting_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
   
   // Build attributes object
   $node->attributes = new stdClass;
-
-  // Add server users: any users with role "administrator"
-  $admin_role = variable_get('user_admin_role', 'administrator');
-  $admins = db_query('SELECT u.name, u.uid FROM users u LEFT JOIN {users_roles} ur on u.uid = ur.uid LEFT JOIN role r ON ur.rid = r.rid WHERE r.name = "%s" OR u.uid = 1 OR u.uid = %d', $admin_role, $node->uid);
   $uids = array();
-  while ($account = db_fetch_object($admins)){
-    $uids[$account->uid] = $account->uid;
+  
+  // Technically, we should inclue user 1 since they too can "access all servers"
+  $uids[1] = 1;
+
+  // Add server users: any users that can "access all servers"
+  $sql = "SELECT u.uid, u.name FROM users u
+  INNER JOIN users_roles ur ON u.uid = ur.uid
+  INNER JOIN permission p ON ur.rid = p.rid
+  WHERE p.perm like '%%%s%%'";
+  $results = db_query($sql, 'access all servers');
+  while ($result = db_fetch_object($results)) {
+    $uids[$result->uid] = $result->uid;
   }
   
   // Get users from the field

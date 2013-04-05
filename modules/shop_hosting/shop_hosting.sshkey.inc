@@ -45,9 +45,10 @@ function shop_hosting_sshkey_delete($key) {
 function shop_hosting_verify_servers_with_key($key){
   if ($key->entity_type == 'user'){
     $servers = shop_hosting_get_servers($key->entity_id);
-    foreach ($servers as $nid){
+    foreach ($servers as $nid => $name){
       hosting_add_task($nid, 'verify');
     }
+    drupal_set_message(t('The @server %list will be updated shortly.', array('@server' => format_plural(count($servers), 'server', 'servers'), '%list' => implode(', ', $servers))));
   }
 }
 
@@ -56,9 +57,18 @@ function shop_hosting_verify_servers_with_key($key){
  */
 function shop_hosting_get_servers($uid) {
   $account = user_load($uid);
+  $servers = array();
+
+  // add all servers if user can access all servers
+  if (user_access('access all servers', $account)){
+    $results = db_query('SELECT nid, title FROM node WHERE type = "server" AND status = 1');
+    while ($node = db_fetch_object($results)){
+      $servers[$node->nid] = $node->title;
+    }
+  }
+  
   // find CCK userreference field tables
   // search through them for matching user ids and load those nodes
-  $additions = array();
   $types = content_types();
 
   // Find the table and columns to search through, if the same
@@ -79,10 +89,10 @@ function shop_hosting_get_servers($uid) {
       $ids = db_query(db_rewrite_sql("SELECT DISTINCT(n.nid), n.title, n.type FROM {node} n LEFT JOIN {". $table ."} f ON n.vid = f.vid WHERE f.". $column ."=". $account->uid. " AND n.status = 1"));
       while ($data = db_fetch_object($ids)) {
         if ($data->type == 'server'){
-          $additions[] = $data->nid;
+          $servers[$data->nid] = $data->title;
         }
       }
     }
   }
-  return $additions;
+  return $servers;
 }
