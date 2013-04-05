@@ -75,7 +75,7 @@ function shop_hosting_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
   }
   
   // PHP Memory Limit
-  $node->attributes->devudo['php']['tuneable']['memory_limit'] = $node->field_chef_php_memory_limit[0]['value'];
+  $node->attributes->php['tuneable']['memory_limit'] = $node->field_chef_php_memory_limit[0]['value'];
 }
 
 /**
