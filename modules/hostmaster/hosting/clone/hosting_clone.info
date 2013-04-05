@@ -1,0 +1,15 @@
+name = Site cloning
+description = Clone sites between platforms, performing upgrades when necessary.
+package = Hosting
+dependencies[] = hosting
+dependencies[] = hosting_migrate
+
+core = 6.x
+
+
+; Information added by drush on 2013-04-04
+version = "6.x-1.9+13-dev"
+core = "6.x"
+project = "hostmaster"
+datestamp = "1365123939"
+

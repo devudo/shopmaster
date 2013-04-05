@@ -1,0 +1,14 @@
+name = Web Pack
+description = Allow hostmaster to configure web "packs", which have masters and slaves.
+package = Hosting
+dependencies[] = hosting_web_server
+
+core = 6.x
+
+
+; Information added by drush on 2013-04-04
+version = "6.x-1.9+13-dev"
+core = "6.x"
+project = "hostmaster"
+datestamp = "1365123939"
+
