@@ -25,24 +25,9 @@ function shop_servers_menu_default_menu_links() {
     'expanded' => '0',
     'weight' => '-50',
   );
-  // Exported menu link: primary-links:servers
-  $menu_links['primary-links:servers'] = array(
-    'menu_name' => 'primary-links',
-    'link_path' => 'servers',
-    'router_path' => 'servers',
-    'link_title' => 'Servers',
-    'options' => array(),
-    'module' => 'system',
-    'hidden' => '0',
-    'external' => '0',
-    'has_children' => '0',
-    'expanded' => '0',
-    'weight' => '0',
-  );
   // Translatables
   // Included for use with string extractors like potx.
   t('Create a Server');
-  t('Servers');
 
 
   return $menu_links;

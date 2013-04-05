@@ -6,6 +6,59 @@
 function shop_servers_content_default_fields() {
   $fields = array();
 
+  // Exported field: field_chef_php_memory_limit
+  $fields['server-field_chef_php_memory_limit'] = array(
+    'field_name' => 'field_chef_php_memory_limit',
+    'type_name' => 'server',
+    'display_settings' => array(
+      'label' => array(
+        'format' => 'above',
+        'exclude' => 0,
+      ),
+      'teaser' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'full' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      '4' => array(
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+    'widget_active' => '1',
+    'type' => 'text',
+    'required' => '1',
+    'multiple' => '0',
+    'module' => 'text',
+    'active' => '1',
+    'text_processing' => '0',
+    'max_length' => '',
+    'allowed_values' => '128M
+256M
+512M
+1024M',
+    'allowed_values_php' => '',
+    'widget' => array(
+      'rows' => 5,
+      'size' => '6',
+      'default_value' => array(
+        '0' => array(
+          'value' => '',
+          '_error_element' => 'default_value_widget][field_chef_php_memory_limit][0][value',
+        ),
+      ),
+      'default_value_php' => NULL,
+      'label' => 'PHP Memory Limit',
+      'weight' => '35',
+      'description' => 'Enter a valid PHP Memory Limit',
+      'type' => 'optionwidgets_select',
+      'module' => 'optionwidgets',
+    ),
+  );
+
   // Exported field: field_chef_role
   $fields['server-field_chef_role'] = array(
     'field_name' => 'field_chef_role',
@@ -229,6 +282,7 @@ Each user will get a linux user created and their public SSH keys uploaded to th
   // Translatables
   // Included for use with string extractors like potx.
   t('Devmaster Parent');
+  t('PHP Memory Limit');
   t('Role');
   t('Server Size');
   t('Users');
