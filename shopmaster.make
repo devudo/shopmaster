@@ -8,10 +8,12 @@ projects[drupal][type] = "core"
 
 ; Contrib
 projects[adminrole][subdir] = "contrib"
+
+projects[services][subdir] = "contrib"
+
 projects[sshkey][subdir] = "contrib"
 
 projects[cck][subdir] = "contrib"
-projects[cck][version] = "2.9"
 
 projects[features][subdir] = "contrib"
 
