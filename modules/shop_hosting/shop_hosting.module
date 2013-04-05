@@ -18,9 +18,7 @@ function shop_hosting_perm(){
  * CHEF NODE ATTRIBUTES get loaded in here.
  * Load attributes into our server node here.
  */
-function shop_hosting_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
-  // Only run if loading a server
-  if ($op != "load" && $node->type != 'server') return;
+function shop_hosting_nodeapi_server_load(&$node) {
   
   // Build attributes object
   $node->attributes = new stdClass;
@@ -80,6 +78,11 @@ function shop_hosting_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
     $ip = $parent_server->ip_addresses[0];
     $node->attributes->devudo['devmaster_parent_ip'] =  $ip;
   }
+  
+  // Flavor, Role, etc.
+  $node->attributes->devudo['rackspace_flavor'] = $node->field_rackspace_flavor[0]['value'];
+  $node->attributes->devudo['rackspace_flavor'] = $node->field_rackspace_flavor[0]['value'];
+  $node->attributes->devudo['chef_role'] = $node->field_chef_role[0]['value'];
   
   // PHP Memory Limit
   $node->attributes->php['tuneable']['memory_limit'] = $node->field_chef_php_memory_limit[0]['value'];
