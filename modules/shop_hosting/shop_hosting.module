@@ -165,6 +165,9 @@ function shop_hosting_nodeapi_server_insert(&$node){
   //mail($to, $subject, $body);
 
   db_query('INSERT INTO {devudo_server_info} (rackspace_id, nid) VALUES ("%s", %d)', $node->rackspace_id, $node->nid);
+  
+  // WTF is cck doing here?? my data isn't available until the node is saved again
+  cache_clear_all('*', 'cache_content', TRUE);
 }
 
 /**
