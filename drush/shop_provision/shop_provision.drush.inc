@@ -243,10 +243,10 @@ function shop_create_server($server_fqdn, $attributes = array()){
   $lines = shop_exec("knife rackspace server create $options --server-name $server_fqdn --image 5cebb13a-f783-4f8c-8058-c4182c724ccd -Fjson -j $attributes_json", "KNIFE rackspace", "CHEF", 'array');
   
   // Detect an error:
-  if (strpos($lines[0], 'ERROR') === 0){
+  if (strpos($lines[0], 'ERROR') === 0 || strpos($lines[0], 'FATAL') === 0){
     drush_log('Error from $ knife rackspace server create: '. $lines[0], 'error');
     return NULL;
-  } 
+  }
   
   // We are grabbing this here because, surprisingly, chef doesn't store the rackspace ID
   $rackspace_instance_id = str_replace('Instance ID: ', '', $lines[0]);
