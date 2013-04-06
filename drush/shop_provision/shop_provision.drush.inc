@@ -2,7 +2,8 @@
 /**
  * @file shop_provision.drush.inc
  */
-
+ 
+ 
 /*********
  * TASKS *
  ********/
@@ -10,44 +11,65 @@
 /**
  * Implements drush_HOOK_pre_COMMAND()
  *   for provision-verify
+ *
+ *   $task NOT available
+ *   d() is server, does NOT get data from pre_hosting_task()
+ *
+ *   @NOTE: We cannot access $task->ref during the provision-verify command.
+ *   We cannot fire real errors in the hosting-task command.
+ *   We are in a serious catch 22 here.
+ *
+ *   The provision-verify is in a totally separate process, so we cannot
+ *   track any data from hosting-task and hosting-task hooks can't get any
+ *   data from here.
+ *
+ *   So, for now, Tasks will always appear to complete "successfully", until
+ *   we can figure out how to save data to the drush alias and then use
+ *   this hook to access it and save it back to hostmaster.
  */
-function drush_shop_provision_pre_provision_verify() {
-
-  // On server verify: we will create or update our server
-  if (d()->context_type == 'server') {
-    drush_log('[DEVUDO] Verifying devudo server...', 'notice');
-    return shop_provision_verify_server();
-  }
-}
+//function drush_shop_provision_pre_provision_verify() {
+//  
+//  drush_log('drush_shop_provision_pre_provision_verify', 'warning');
+//  drush_log('d() = ' . print_r(d(), 1), 'warning');
+//
+//  $context = drush_get_context('alias');
+//  drush_log('$context = '. print_r($context, 1), 'warning');
+//
+//  // On server verify: we will create or update our server
+//  if (d()->context_type == 'server' && d()->name != '@server_localhost' && d()->name != '@server_master') {
+//    drush_log('[DEVUDO] Verifying devudo server...', 'notice');
+//    return shop_provision_verify_server();
+//  }
+//}
 
 /**
  * Implements drush_HOOK_pre_COMMAND()
  *   for provision-delete
  */
-function drush_shop_provision_pre_provision_delete() {
-  // On server delete, run the commands to actually destroy the server.
-  if (d()->context_type == 'server') {
-    drush_log('[DEVUDO] deleting devudo server...', 'notice');
-    return shop_provision_delete_server();
-  }
-}
-
-// @TODO: Figure out how to save data returned in shop_provision_verify_server() to
-// The $task-ref node...
-
+//function drush_shop_provision_pre_provision_delete() {
+//  drush_log('drush_shop_provision_pre_provision_verify', 'notice');
+//  drush_log('d() = ' . print_r(d(), 1), 'notice');
+//  
+//  // On server delete, run the commands to actually destroy the server.
+//  if (d()->context_type == 'server') {
+//    drush_log('[DEVUDO] deleting devudo server...', 'notice');
+//    return shop_provision_delete_server();
+//  }
+//}
 
 /**
  * Verify Server: If no chef node by server name found, $ knife rackspace create
  */
 function shop_provision_verify_server() {
+  $task = &drush_get_context('HOSTING_TASK');
 
   // Get some vars and attributes
   $server_fqdn = d()->remote_host;
-  $attributes = d()->attributes;
+  $attributes = $task->ref->attributes;
   $json_path = "/tmp/$server_fqdn.json";
   
   // Look for this chef node on Chef Server
-  drush_log("[DEVUDO] Looking for chef node $server_fqdn on chef server", 'ok');
+  drush_log("[DEVUDO] Looking for chef node $server_fqdn on chef server", 'warning');
   $chef_node = shop_get_server($server_fqdn);
   
   // CREATE: If no server found, Create & prepare a new server
@@ -55,18 +77,27 @@ function shop_provision_verify_server() {
     
     // @TODO: Allow flavor to be chosen
     drush_log("[DEVUDO] Chef node not found with name:$server_fqdn. Creating server...", 'warning');
-    if ($rackspace_id = shop_create_server($server_fqdn, $attributes)){
+    
+    // CREATE THE SERVER!
+    $rackspace_id = shop_create_server($server_fqdn, $attributes);
+    if ($rackspace_id){
       drush_log("[DEVUDO] Rackspace ID Detected: $rackspace_id", 'ok');
-      d()->rackspace_id = $rackspace_id;  
+      
+      // Save the Rackspace ID
+      $task->ref->rackspace_id = $rackspace_id;  
     } else {
-      return drush_set_error('DEVUDO_SERVER_CREATE', dt('Something went wrong trying to create a server on Rackspace.'));
+      
+      // No rackspace ID? something went wrong.
+      // @TODO!  We cannot set error here because this function is
+      // being called during hosting-task, not provision-verify!
+      // If we set error now, the TASK runs FOREVER!  WTF WTF WTF
+      // return drush_set_error('DEVUDO_SERVER_CREATE', dt('Something went wrong trying to create a server on Rackspace.'));
+      return drush_log(dt('[DEVUDO] Something went wrong trying to create a server on Rackspace.'), 'error');
     }
     
   }
   // UPDATE: If a server was found, we will update it's attributes
   else {
-    
-    // @TODO: If we allow changing of role we would do it here...
     
     drush_log("[DEVUDO] Chef node found with name:$server_fqdn", 'ok');
     
@@ -91,7 +122,7 @@ function shop_provision_verify_server() {
   // @TODO: Should we grab both public and private IPs?
   if (!empty($chef_node->automatic->ipaddress)){
     drush_log('[DEVUDO] ipaddress found in chef node attributes!', 'ok');
-    // $task->ref->ip_addresses = array($chef_node->automatic->ipaddress);
+    $task->ref->ip_addresses = array($chef_node->automatic->ipaddress);
     
     // @TODO: SAVE DNS!!! This will be much slower here...
     // We need to add the DNS record the moment that rackspace
@@ -105,12 +136,12 @@ function shop_provision_verify_server() {
   // NOTE: The actual rackspace server ID does NOT seem to be here!
   //   Lets research the right way to get it or just hack our way to
   //   it by using knife rackspace list.
-  if (!empty($chef_node->automatic->rackspace)){
-    drush_log('[DEVUDO] Rackspace Info found', 'ok');
-    // $task->ref->rackspace = $chef_node->automatic->rackspace;
-  } else {
-    
-  }
+  //if (!empty($chef_node->automatic->rackspace)){
+  //  drush_log('[DEVUDO] Rackspace Info found', 'ok');
+  //  $task->ref->rackspace = $chef_node->automatic->rackspace;
+  //} else {
+  //  
+  //}
   
   // @TODO: If this was a livemaster server with a devmaster parent, grab the
   // livemaster mysql root password and devmaster_parent_ip, and save it to the
