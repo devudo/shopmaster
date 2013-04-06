@@ -184,8 +184,11 @@ function shop_provision_delete_server(){
   } else {
     drush_log("last line == ? " . $last_line[2], 'notice');
     //return drush_set_error('DRUSH_FRAMEWORK_ERROR', dt('Something went wrong when trying to tell rackspace to delete the server! Please review the logs above.'));
-    return drush_log(dt('Something went wrong when trying to tell rackspace to delete the server! Please review the logs above.'), 'error');
+    drush_log(dt('Something went wrong when trying to tell rackspace to delete the server! Please review the logs above.'), 'error');
+    return FALSE;
   }
+  // Tell drush_shop_hosting_pre_hosting_task() that we successfully deleted!
+  return TRUE;
 }
 
 /*********
