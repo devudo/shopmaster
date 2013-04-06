@@ -64,6 +64,7 @@ function shop_hosting_nodeapi_server_load(&$node) {
   // Load server info
   $info = db_query('SELECT * from {devudo_server_info} WHERE nid = %d', $node->nid);
   $node->devudo_server_info = db_fetch_object($info);
+  $node->rackspace_id = $node->devudo_server_info->rackspace_id;
   
   // Adding the author of the node as the admin user on the devshop
   $account = user_load($node->uid);
