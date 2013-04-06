@@ -167,7 +167,8 @@ function shop_provision_delete_server(){
   drush_log("[DEVUDO] Attempting to delete server $server_fqdn, Rackspace ID: $server_id" );
   
   if (!$server_id) {
-    return drush_set_error('DEVUDO_RACKSPACE_ERROR', dt('No server ID!  Without that, I cannot delete the server.'));
+    //return drush_set_error('DEVUDO_RACKSPACE_ERROR', dt('No server ID!  Without that, I cannot delete the server.'));
+    return drush_log(dt('No server ID!  Without that, I cannot delete the server.'), 'error');
   }
   $lines = shop_exec($cmd, 'RUNNING', 'KNIFE', 'lines');
   // When successful, the last three lines look like this:
@@ -182,7 +183,8 @@ function shop_provision_delete_server(){
     drush_log("[DEVUDO] Server Deletion successful!", 'ok');
   } else {
     drush_log("last line == ? " . $last_line[2], 'notice');
-    return drush_set_error('DRUSH_FRAMEWORK_ERROR', dt('Something went wrong when trying to tell rackspace to delete the server! Please review the logs above.'));
+    //return drush_set_error('DRUSH_FRAMEWORK_ERROR', dt('Something went wrong when trying to tell rackspace to delete the server! Please review the logs above.'));
+    return drush_log(dt('Something went wrong when trying to tell rackspace to delete the server! Please review the logs above.'), 'error');
   }
 }
 
@@ -231,7 +233,8 @@ function shop_create_server($server_fqdn, $attributes = array()){
 
   // If no rackspace flavor it is doomed
   if (!$rackspace_flavor) {
-    return drush_set_error('DEVUDO_RACKSPACE_CREATE', dt('No rackspace_flavor found!'));
+    //return drush_set_error('DEVUDO_RACKSPACE_CREATE', dt('No rackspace_flavor found!'));
+    return drush_log(dt('No rackspace_flavor found!'), 'error');
   }
   
   $attributes_json = escapeshellarg(json_encode($attributes));
