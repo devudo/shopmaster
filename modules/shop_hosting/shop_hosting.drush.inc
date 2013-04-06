@@ -37,17 +37,6 @@ function drush_shop_hosting_pre_hosting_task() {
 }
 
 /**
- * Implements drush_HOOK_pre_COMMAND
- */
-function drush_shop_hosting_pre_hosting_task() {
-  $task = &drush_get_context('HOSTING_TASK');
-  if ($task->ref->type == 'server') {
-    
-    // Create or update the server.
-    shop_provision_verify_server();
-  }
-}
-/**
  * Implements hook_post_hosting_TASKTYPE_task()
  *
  * ONLY runs when a task does not fail.
