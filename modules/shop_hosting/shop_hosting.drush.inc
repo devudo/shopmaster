@@ -1,17 +1,6 @@
 <?php
 
 /**
- * Unpublishes the server node once you run "delete"
- */
-function shop_hosting_post_hosting_delete_task($task, $data) {
-  if ($task->ref->type == 'server') {
-    $task->ref->status = 0;
-    $task->ref->no_verify = TRUE;
-    node_save($task->ref);
-  }
-}
-
-/**
  * Implements drush_HOOK_pre_COMMAND
  *
  * $task is available.
@@ -31,7 +20,11 @@ function drush_shop_hosting_pre_hosting_task() {
       
     } elseif ($task->task_type == 'delete'){
       // DESTROY the server.
-      shop_provision_delete_server();
+      if (shop_provision_delete_server()){
+        $task->ref->status = 0;
+        $task->ref->no_verify = TRUE;
+        node_save($task->ref);
+      }
     }
   }
 }
