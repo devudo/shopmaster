@@ -94,11 +94,14 @@ function shop_hosting_nodeapi_server_load(&$node) {
  */
 function shop_hosting_form_alter(&$form, &$form_state, $form_id){
   if ($form_id == 'server_node_form') {
+
+    // Rackspace ID: only shown if something went wrong.
+    // @TODO: If the server is still being verified, set to hidden
     $form['rackspace_id'] = array(
       '#title' => t('Rackspace Server ID'),
-      '#description' => t('You really shouldn\'t be editing here...'),
-      '#type' => 'hidden',
-      '#default_value' => $form['#node']->devudo_server_info->rackspace_id,
+      '#description' => t('This is normally autopopulated upon successful server creation.  If not, you can enter it here.'),
+      '#type' => empty($form['#node']->rackspace_id) && !empty($form['#node']->nid)? 'textfield': 'hidden',
+      '#default_value' => $form['#node']->rackspace_id,
     );
     
     // Hide some things
