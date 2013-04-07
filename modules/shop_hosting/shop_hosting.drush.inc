@@ -9,6 +9,19 @@
  * to the provision-XXX hooks. Basically, NO drush contexts are persisted from here
  * to the provision-XXX hooks!!!
  *
+ * @TODO:  If we could save our attributes to the drush alias (server context) we
+ * would then be able to run drush @server_NAME provison-x directly from the backend.
+ *
+ * Aegir sucks here.  I cannot determine how to save data to the server context.
+ * We should seriously fix aegir here.  You cannot save things to the drush alias
+ * (server context) without a provision service file.
+ *
+ * We can't fire drush_set_error() and make the task fail until this happens, and we
+ * can't run provision-verify from the terminal and create a server.  Meaning, currently,
+ * we can ONLY create servers from http://shop.devudo.com/node/add/server
+ *
+ * 
+ *
  */
 function drush_shop_hosting_pre_hosting_task() {
   $task = &drush_get_context('HOSTING_TASK');
