@@ -64,7 +64,7 @@ function shop_provision_verify_server() {
   $task = &drush_get_context('HOSTING_TASK');
 
   // Get some vars and attributes
-  $server_fqdn = d()->remote_host;
+  $server_fqdn = $task->ref->title;
   $attributes = $task->ref->attributes;
   $json_path = "/tmp/$server_fqdn.json";
   
