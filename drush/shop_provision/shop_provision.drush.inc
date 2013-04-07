@@ -206,14 +206,13 @@ function shop_provision_delete_server(){
  */
 function shop_exec($command, $label = "EXEC", $command_label = "KNIFE", $output = 'string'){
   drush_log("[$label] Running: $command");
-  drush_shell_exec($command);
+  _drush_shell_exec(array($command), TRUE);
   $lines = drush_shell_exec_output();
   foreach ($lines as $line){
     drush_log("[$command_label] $line");
   }
   return $output == 'string'? implode("\n", $lines): $lines;
 }
-
 /**
  * Helpful Exec to JSon
  */
