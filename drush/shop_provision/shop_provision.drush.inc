@@ -106,7 +106,9 @@ function shop_provision_verify_server() {
     file_put_contents($json_path, $attributes_json);
     
     // Sync file to server
-    shop_exec("scp $json_path devudo@$server_fqdn:~/attributes.json");
+    // Use IP in case something is wrong with DNS
+    $ip_address = array_pop($task->ref->ip_addresses);
+    shop_exec("scp $json_path devudo@$ip_address:~/attributes.json");
 
     // Run chef-client to update the server itself.
     $chef_client_cmd = "sudo /usr/bin/chef-client -j attributes.json";
