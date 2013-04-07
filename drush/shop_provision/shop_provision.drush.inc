@@ -107,8 +107,12 @@ function shop_provision_verify_server() {
     
     // Sync file to server
     // Use IP in case something is wrong with DNS
-    $ip_address = array_pop($task->ref->ip_addresses);
-    shop_exec("scp $json_path devudo@$ip_address:~/attributes.json");
+    if (!empty($task->ref->ip_addresses)){
+      $host = array_pop($task->ref->ip_addresses);
+    } else {
+      $host = $server_fqdn;
+    }
+    shop_exec("scp $json_path devudo@$host:~/attributes.json");
 
     // Run chef-client to update the server itself.
     $chef_client_cmd = "sudo /usr/bin/chef-client -j attributes.json";
@@ -275,6 +279,8 @@ function shop_log_object($object, $name = '', $label = 'DEVUDO'){
   $object = print_r($object, 1);
   drush_log("[$label] $name => $object");
 }
+
+
 /**
  * Saving  to $task->context_options['ip_addresses'] works!
  */
