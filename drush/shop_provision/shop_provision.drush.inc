@@ -243,7 +243,7 @@ function shop_exec_json($command, $string = FALSE, $label = "EXEC"){
  * Helper to load a server node from chef server by name
  */
 function shop_get_server($node_name, $options = ' -l'){
-  return shop_exec("knife node show $node_name -Fj $options", FALSE, 'KNIFE');
+  return shop_exec_json("knife node show $node_name -Fj $options", FALSE, 'KNIFE');
 }
 
 /**
