@@ -2,8 +2,22 @@
 /**
  * @file shop_provision.drush.inc
  */
- 
- 
+
+/**
+ *
+ */
+function shop_provision_drush_commands(){
+  $items['create-server'] = array(
+    'description' => 'Fires up a new server with knife, using the specified chef role.', 
+    'arguments' => array(
+      'hostname' => 'The hostname to use for the server.',
+    ),
+    'options' => array(
+      'runlist' => 'A chef runlist or role.'
+    ),
+  );
+  return $items;
+}
 /*********
  * TASKS *
  ********/
@@ -209,7 +223,7 @@ function shop_exec($command, $label = "EXEC", $command_label = "KNIFE", $output 
   _drush_shell_exec(array($command), TRUE);
   $lines = drush_shell_exec_output();
   foreach ($lines as $line){
-    drush_log("[$command_label] $line");
+    //drush_log("[$command_label] $line");
   }
   return $output == 'string'? implode("\n", $lines): $lines;
 }
@@ -229,7 +243,7 @@ function shop_exec_json($command, $string = FALSE, $label = "EXEC"){
  * Helper to load a server node from chef server by name
  */
 function shop_get_server($node_name, $options = ' -l'){
-  return shop_exec_json("knife node show $node_name -Fj $options", FALSE, 'KNIFE');
+  return shop_exec("knife node show $node_name -Fj $options", FALSE, 'KNIFE');
 }
 
 /**
