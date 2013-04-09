@@ -4,8 +4,8 @@
  */
 
 /**
+ * NOT YET IMPLEMENTED
  *
- */
 function shop_provision_drush_commands(){
   $items['create-server'] = array(
     'description' => 'Fires up a new server with knife, using the specified chef role.', 
