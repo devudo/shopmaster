@@ -235,7 +235,7 @@ function shop_exec_json($command, $string = FALSE, $label = "EXEC"){
   drush_shell_exec($command);
   $lines = drush_shell_exec_output();
   $json = implode($lines);
-  drush_log("[$label] Returned: $json");
+  // drush_log("[$label] Returned: $json");
   return $string? $json: json_decode($json);
 }
 
