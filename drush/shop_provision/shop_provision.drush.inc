@@ -132,7 +132,7 @@ function shop_provision_verify_server() {
     $chef_client_cmd = "sudo /usr/bin/chef-client -j attributes.json";
     $chef_client_cmd_exec = escapeshellarg($chef_client_cmd);
     drush_log("[DEVUDO] Running chef-client on $server_fqdn:", 'notice');
-    shop_exec("knife ssh name:$server_fqdn -x devudo $chef_client_cmd_exec -a ipaddress");
+    shop_exec_interactive("knife ssh name:$server_fqdn -x devudo $chef_client_cmd_exec -a ipaddress");
   }
   
   // Get the newly created or updated chef node from chef server
@@ -177,11 +177,12 @@ function shop_provision_verify_server() {
  * Delete Server: $ knife rackspace server delete
  */
 function shop_provision_delete_server(){
+  $task = &drush_get_context('HOSTING_TASK');
   
   // Get some vars and attributes
   $server_fqdn = d()->remote_host;
-  $attributes = d()->attributes;
-  $server_id = $attributes->devudo->rackspace_id;
+  $attributes = $task->ref->attributes;
+  $server_id = $task->ref->rackspace_id;
   
   $cmd = "knife rackspace server delete $server_id -P -y";
   drush_log("[DEVUDO] Attempting to delete server $server_fqdn, Rackspace ID: $server_id" );
@@ -214,16 +215,22 @@ function shop_provision_delete_server(){
 /*********
  * TOOLS *
  ********/
-
+/**
+ * exec interactive
+ */
+function shop_exec_interactive($command, $label = "EXEC"){
+  drush_log("[$label] Running: $command");
+  _drush_shell_exec(array($command), TRUE);
+}
 /**
  * Helpful Exec
  */
 function shop_exec($command, $label = "EXEC", $command_label = "KNIFE", $output = 'string'){
   drush_log("[$label] Running: $command");
-  _drush_shell_exec(array($command), TRUE);
+  drush_shell_exec(array($command), TRUE);
   $lines = drush_shell_exec_output();
   foreach ($lines as $line){
-    //drush_log("[$command_label] $line");
+    drush_log("[$command_label] $line");
   }
   return $output == 'string'? implode("\n", $lines): $lines;
 }
