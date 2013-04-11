@@ -156,8 +156,13 @@ function shop_provision_verify_server() {
   drush_log("[DEVUDO] Looking for chef node $server_fqdn on chef server", 'warning');
   $chef_node = shop_get_server($server_fqdn);
   
+  // SOMETHING FAILED: shop_get_server() returns the string output if json didn't encode.
+  if (is_string($chef_node)) {
+    drush_log('[DEVUDO] Something went wrong looking for the server:', 'error');
+    drush_log($chef_node, 'error');
+  }
   // CREATE: If no server found, Create & prepare a new server
-  if (empty($chef_node)){
+  elseif (empty($chef_node)){
     
     // @TODO: Allow flavor to be chosen
     drush_log("[DEVUDO] Chef node not found with name:$server_fqdn. Creating server...", 'warning');
@@ -182,9 +187,7 @@ function shop_provision_verify_server() {
       return drush_log(dt('[DEVUDO] Rackspace ID not found!'), 'error');
     }
     
-    // Get chef node data from chef server
-    $chef_node = shop_get_server($server_fqdn);
-  
+    
   }
   // UPDATE: If a server was found, we will update it's attributes
   else {
@@ -215,10 +218,13 @@ function shop_provision_verify_server() {
   }
   
   // EVERYTHING BELOW HAPPENS WHETHER THE SERVER IS NEWLY CREATED OR NOT.
+  // Get chef node data from chef server
+  $chef_node = shop_get_server($server_fqdn);
   
   // If we have the IP, save it here
   // @TODO: Should we grab both public and private IPs?
   $ips = array();
+  
   if (!empty($chef_node->automatic->ipaddress)){
     drush_log("[DEVUDO] IP address for $server_fqdn loaded from chief.devudo.com: $chef_node->automatic->ipaddress", 'ok');
     
@@ -280,7 +286,7 @@ function shop_provision_delete_server(){
     //return drush_set_error('DEVUDO_RACKSPACE_ERROR', dt('No server ID!  Without that, I cannot delete the server.'));
     return drush_log(dt('No server ID!  Without that, I cannot delete the server.'), 'error');
   }
-  $lines = shop_exec($cmd, 'RUNNING', 'KNIFE', 'lines');
+  $lines = shop_exec_return($cmd, 'RUNNING', 'KNIFE', 'lines');
   // When successful, the last three lines look like this:
   // [KNIFE] WARNING: Deleted server bb23f28a-c1fc-4e49-9c15-48b1807dc08c
   // [KNIFE] WARNING: Deleted node ben.devudo.com
@@ -314,7 +320,15 @@ function shop_exec_interactive($command, $label = "EXEC"){
 /**
  * Helpful Exec
  */
-function shop_exec($command, $label = "EXEC", $command_label = "KNIFE", $output = 'string'){
+function shop_exec($command, $label = "EXEC"){
+  drush_log("[$label] Running: $command");
+  drush_shell_exec($command);
+}
+
+/**
+ * Helpful Exec
+ */
+function shop_exec_return($command, $label = "EXEC", $command_label = "KNIFE", $output = 'string'){
   drush_log("[$label] Running: $command");
   drush_shell_exec($command);
   $lines = drush_shell_exec_output();
@@ -326,13 +340,22 @@ function shop_exec($command, $label = "EXEC", $command_label = "KNIFE", $output 
 /**
  * Helpful Exec to JSon
  */
-function shop_exec_json($command, $string = FALSE, $label = "EXEC"){
+function shop_exec_json($command, $return_string = FALSE, $label = "EXEC"){
   drush_log("[$label] Running: $command");
   drush_shell_exec($command);
   $lines = drush_shell_exec_output();
-  $json = implode($lines);
-  // drush_log("[$label] Returned: $json");
-  return $string? $json: json_decode($json);
+  $data_string = implode($lines);
+  $data_json = json_decode($data_string);
+  
+  // Force return string if json did not decode
+  if (!is_array($data_json) && !is_object($data_json)){
+    return $data_string;
+  } else {
+    // If asked to return a string, return a string.
+    return $return_string? $data_string: $data_json;
+  }
+  
+  
 }
 
 /**
@@ -356,9 +379,11 @@ function shop_create_server($server_fqdn, $attributes = array()){
   
   $attributes_json = json_encode($attributes);
 
+  drush_log("[DEVUDO] Running: drush server-create $server_fqdn $role --rackspace_flavor $rackspace_flavor --attributes=$attributes_json");
   drush_set_option('rackspace_flavor', $rackspace_flavor);
   drush_set_option('attributes', $attributes_json);
   $data = drush_shop_provision_server_create($server_fqdn, $role);
+  
   
   return $data;
 }
@@ -372,15 +397,15 @@ function shop_log_object($object, $name = '', $label = 'DEVUDO'){
 }
 
 
-/**
- * Saving  to $task->context_options['ip_addresses'] works!
- */
-function shop_provision_hosting_server_context_options(&$task) {
-  
-  drush_log("[DEVUDO] Shopmaster context options: " . $task->devudo_test, 'ok');
-  
-  $task->context_options['remote_host'] = $task->ref->title;
-  $ip_list = _hosting_ip_list($task->ref->ip_addresses);
-  $task->context_options['ip_addresses'] = sizeof($ip_list) ? implode(',', $ip_list) : 'null';
-
-}
+///**
+// * Saving  to $task->context_options['ip_addresses'] works!
+// */
+//function shop_provision_hosting_server_context_options(&$task) {
+//  
+//  drush_log("[DEVUDO] Shopmaster context options: " . $task->devudo_test, 'ok');
+//  
+//  $task->context_options['remote_host'] = $task->ref->title;
+//  $ip_list = _hosting_ip_list($task->ref->ip_addresses);
+//  $task->context_options['ip_addresses'] = sizeof($ip_list) ? implode(',', $ip_list) : 'null';
+//
+//}
