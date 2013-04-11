@@ -203,7 +203,7 @@ function shop_provision_delete_server(){
   $last_line[] = array_pop($lines);
   $last_line[] = array_pop($lines);
   $last_line[] = array_pop($lines);
-  if ($last_line[2] == "[KNIFE] WARNING: Deleted server $server_id") {
+  if ($last_line[2] == "WARNING: Deleted server $server_id") {
     drush_log("[DEVUDO] Server Deletion successful!", 'ok');
   } else {
     drush_log("last line == ? " . $last_line[2], 'notice');
