@@ -4,20 +4,90 @@
  */
 
 /**
- * NOT YET IMPLEMENTED
+ * Implements hook_drush_command.
  *
-function shop_provision_drush_commands(){
-  $items['create-server'] = array(
+ * drush server create HOSTNAME ROLE --rackspace_flavor=2
+ */
+function shop_provision_drush_command(){
+  $items['server-create'] = array(
     'description' => 'Fires up a new server with knife, using the specified chef role.', 
     'arguments' => array(
       'hostname' => 'The hostname to use for the server.',
+      'role' => 'The chef role to use for this server.',
     ),
     'options' => array(
-      'runlist' => 'A chef runlist or role.'
+      'attributes' => 'A JSON string of attributes.',
+      'rackspace_flavor' => 'The id of the Rackspace flavor you want to use. (2 through 8)',
+      'rackspace_image' => 'The image of the Rackspace flavor you want to use.'
     ),
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
   );
   return $items;
 }
+
+/**
+ * Basic wrapper for knife rackspace server create.
+ *
+ * "knife rackspace server create $options --server-name $server_fqdn --image 5cebb13a-f783-4f8c-8058-c4182c724ccd -Fjson -j $attributes_json", "KNIFE CREATE", "EXEC", 'array');
+ *
+ * Returns the short data list that is found when chef is done.
+ */
+function drush_shop_provision_server_create($server_fqdn, $role = ""){
+  drush_log("Hi! we're here to make a $role server called $server_fqdn!", 'ok');
+  
+  $rackspace_flavor = drush_get_option('rackspace_flavor', '2');
+  $rackspace_image = drush_get_option('rackspace_image', '5cebb13a-f783-4f8c-8058-c4182c724ccd');
+  
+  $attributes_json = drush_get_option('attributes', '{}');
+  $attributes_json = escapeshellarg($attributes_json);
+  
+  $run_list = ($role)? "role[$role]": "";
+  $run_list = ($role)? "role[$role]": "";
+  $options = ($run_list)? "-r $run_list": "";
+  $options .= " --flavor $rackspace_flavor ";
+  
+  // Not using shpo_exec here to try and avoid these logging errors.
+  $cmd = "knife rackspace server create $options --server-name $server_fqdn --image $rackspace_image -Fjson -j $attributes_json";
+  
+  drush_log("[EXEC] Running: $cmd", 'ok');
+  drush_shell_exec($cmd);
+  
+  /**
+   * SIMULATE
+    drush_log("[EXEC] JUST KIDDING!  Moving on...", 'ok');
+    $data['Instance ID'] =  'FAke33-eee3-47ee-b52d-RACk3RIDc24b';
+    $data['Public IP Address'] =  "111.111.111.111";
+    return $data;
+   */
+  
+  // Extract some info.
+  $lines = drush_shell_exec_output();
+  
+    //Instance ID: 051b356e-e6b3-47ee-b52d-a0cc03fdc24b
+    //Host ID: e8df6854910f156a954ed00f55b2ededf5ea22529c84a4f7165a14cd
+    //Name: devmaster.localhost
+    //Flavor: 512MB Standard Instance
+    //Image: Ubuntu 12.04 LTS (Precise Pangolin)
+    //Public DNS Name: 166-78-61-124.static.cloud-ips.com
+    //Public IP Address: 166.78.61.124
+    //Private IP Address: 10.182.24.87
+    //Password: BoBPErQFh2Lf
+    //Environment: _default
+    //Run List: role[devmaster]
+  
+  $data = array();
+  $data_lines = array_slice($lines, -11);
+  foreach ($data_lines as $line){
+    drush_log($line, 'ok');
+    list($key, $value) = explode(": ", $line);
+    $data[$key] = $value;
+  }
+  
+  // Make sure run list is applied.
+  shop_exec("knife node run-list add $server_fqdn $run_list");
+  return $data;
+}
+
 /*********
  * TASKS *
  ********/
@@ -93,9 +163,12 @@ function shop_provision_verify_server() {
     drush_log("[DEVUDO] Chef node not found with name:$server_fqdn. Creating server...", 'warning');
     
     // CREATE THE SERVER!
-    $rackspace_id = shop_create_server($server_fqdn, $attributes);
-    if ($rackspace_id){
-      drush_log("[DEVUDO] Rackspace ID Detected: $rackspace_id", 'ok');
+    $data = shop_create_server($server_fqdn, $attributes);
+    $rackspace_id = $data['Instance ID'];
+    $ipaddress =  $data['Public IP Address'];
+    
+    if (!empty($rackspace_id)){
+      drush_log("[DEVUDO] Server Created! $ipaddress  $rackspace_id", 'ok');
       
       // Save the Rackspace ID
       $task->ref->rackspace_id = $rackspace_id;  
@@ -106,9 +179,12 @@ function shop_provision_verify_server() {
       // being called during hosting-task, not provision-verify!
       // If we set error now, the TASK runs FOREVER!  WTF WTF WTF
       // return drush_set_error('DEVUDO_SERVER_CREATE', dt('Something went wrong trying to create a server on Rackspace.'));
-      return drush_log(dt('[DEVUDO] Something went wrong trying to create a server on Rackspace.'), 'error');
+      return drush_log(dt('[DEVUDO] Rackspace ID not found!'), 'error');
     }
     
+    // Get chef node data from chef server
+    $chef_node = shop_get_server($server_fqdn);
+  
   }
   // UPDATE: If a server was found, we will update it's attributes
   else {
@@ -138,33 +214,43 @@ function shop_provision_verify_server() {
     shop_exec_interactive("knife ssh name:$server_fqdn -x devudo $chef_client_cmd_exec -a ipaddress");
   }
   
-  // Get the newly created or updated chef node from chef server
-  $chef_node = shop_get_server($server_fqdn);
+  // EVERYTHING BELOW HAPPENS WHETHER THE SERVER IS NEWLY CREATED OR NOT.
   
   // If we have the IP, save it here
   // @TODO: Should we grab both public and private IPs?
+  $ips = array();
   if (!empty($chef_node->automatic->ipaddress)){
-    drush_log('[DEVUDO] ipaddress found in chef node attributes!', 'ok');
-    $task->ref->ip_addresses = array($chef_node->automatic->ipaddress);
+    drush_log("[DEVUDO] IP address for $server_fqdn loaded from chief.devudo.com: $chef_node->automatic->ipaddress", 'ok');
     
-    // @TODO: SAVE DNS!!! This will be much slower here...
+    $ips[] = $chef_node->automatic->ipaddress;
+    $task->ref->ip_addresses[] = array($chef_node->automatic->ipaddress);
+    
+    
+  }
+  // $ipaddress is returned from the server create process.  If we are testing,
+  // $chef_node might not exist, so this is here mostly for debugging or if something
+  // goes wrong when connecting to the chef server, we might already have the IP
+  elseif (isset($ipaddress)) {
+    drush_log("[DEVUDO] IP address for $server_fqdn NOT FOUND from chief.devudo.com, but we got it from the knife rackspace server create: $ipaddress", 'ok');
+    $ips[] = $ipaddress;
+  }
+
+  
+  // if we got IPs, save them now.
+  if (!empty($ips)){
+    $task->ref->ip_addresses = $ips;
+    
+    // @TODO: SAVE DNS!!! (But not here!) This will be much slower here...
     // We need to add the DNS record the moment that rackspace
-    // grants an IP address
+    // grants an IP address for this server.  A Hosting queue is probably our best bet.
     
-  } else {
-    drush_log('[DEVUDO] No ipaddress found in chef node attributes!', 'warning');
   }
   
-  // @TODO: Save other important attributes now.
-  // NOTE: The actual rackspace server ID does NOT seem to be here!
-  //   Lets research the right way to get it or just hack our way to
-  //   it by using knife rackspace list.
-  //if (!empty($chef_node->automatic->rackspace)){
-  //  drush_log('[DEVUDO] Rackspace Info found', 'ok');
-  //  $task->ref->rackspace = $chef_node->automatic->rackspace;
-  //} else {
-  //  
-  //}
+  // if we got a rackspace ID, save it now.
+  if (!empty($ips)){
+    $task->ref->ip_addresses = $ips;
+  }
+    
   
   // @TODO: If this was a livemaster server with a devmaster parent, grab the
   // livemaster mysql root password and devmaster_parent_ip, and save it to the
@@ -183,7 +269,7 @@ function shop_provision_delete_server(){
   $task = &drush_get_context('HOSTING_TASK');
   
   // Get some vars and attributes
-  $server_fqdn = d()->remote_host;
+  $server_fqdn = $task->ref->title;
   $attributes = $task->ref->attributes;
   $server_id = $task->ref->rackspace_id;
   
@@ -230,7 +316,7 @@ function shop_exec_interactive($command, $label = "EXEC"){
  */
 function shop_exec($command, $label = "EXEC", $command_label = "KNIFE", $output = 'string'){
   drush_log("[$label] Running: $command");
-  drush_shell_exec($command, TRUE);
+  drush_shell_exec($command);
   $lines = drush_shell_exec_output();
   foreach ($lines as $line){
     drush_log("[$command_label] $line");
@@ -260,45 +346,21 @@ function shop_get_server($node_name, $options = ' -l'){
  * Helper to create a server from scratch.  Runs knife rackspace server create 
  */
 function shop_create_server($server_fqdn, $attributes = array()){
-  $role = $attributes->devudo['chef_role'];
+  $role = ''; //$attributes->devudo['chef_role'];
   $rackspace_flavor = $attributes->devudo['rackspace_flavor'];
 
   // If no rackspace flavor it is doomed
   if (!$rackspace_flavor) {
-    //return drush_set_error('DEVUDO_RACKSPACE_CREATE', dt('No rackspace_flavor found!'));
     return drush_log(dt('No rackspace_flavor found!'), 'error');
   }
   
-  $attributes_json = escapeshellarg(json_encode($attributes));
-  
-  // @TODO: A nice array of options would make sense here.
-  $run_list = ($role)? "role[$role]": "";
-  $options = ($run_list)? "-r $run_list": "";
-  $options .= " --flavor $rackspace_flavor ";
-  $lines = shop_exec("knife rackspace server create $options --server-name $server_fqdn --image 5cebb13a-f783-4f8c-8058-c4182c724ccd -Fjson -j $attributes_json", "KNIFE CREATE", "EXEC", 'array');
-  
-  drush_log('PRINT R LINES: ' . print_r($lines, 1), 'error');
-  // Detect an error:
-  if (strpos($lines[0], 'ERROR') === 0 || strpos($lines[0], 'FATAL') === 0){
-    drush_log('Error from $ knife rackspace server create: '. $lines[0], 'error');
-    return NULL;
-  }
-  
-  if (strpos($lines[0], 'Instance ID: ') === 0 ){
-    // We are grabbing this here because, surprisingly, chef doesn't store the rackspace ID
-    $rackspace_instance_id = str_replace('Instance ID: ', '', $lines[0]);
-  } else {
-    $rackspace_instance_id = NULL;
-  }
+  $attributes_json = json_encode($attributes);
 
-  if ($rackspace_instance_id){
-    // Make sure run list is applied.
-    shop_exec("knife node run-list add $server_fqdn $run_list");
-   
-    // @TODO confirm the server exists with a knife node show.
-    shop_exec("knife node show $server_fqdn");
-  }
-  return $rackspace_instance_id;
+  drush_set_option('rackspace_flavor', $rackspace_flavor);
+  drush_set_option('attributes', $attributes_json);
+  $data = drush_shop_provision_server_create($server_fqdn, $role);
+  
+  return $data;
 }
 
 /**
