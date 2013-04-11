@@ -84,7 +84,7 @@ function drush_shop_provision_server_create($server_fqdn, $role = ""){
   }
   
   // Make sure run list is applied.
-  shop_exec("knife node run-list add $server_fqdn $run_list");
+  shop_exec("knife node run-list add $server_fqdn $run_list", 'EXEC');
   return $data;
 }
 
@@ -153,19 +153,23 @@ function shop_provision_verify_server() {
   $json_path = "/tmp/$server_fqdn.json";
   
   // Look for this chef node on Chef Server
-  drush_log("[DEVUDO] Looking for chef node $server_fqdn on chef server", 'warning');
+  drush_log("[DEVUDO] Looking for chef node $server_fqdn on chef server", 'ok');
   $chef_node = shop_get_server($server_fqdn);
   
   // SOMETHING FAILED: shop_get_server() returns the string output if json didn't encode.
   if (is_string($chef_node)) {
-    drush_log('[DEVUDO] Something went wrong looking for the server:', 'error');
-    drush_log($chef_node, 'error');
-  }
-  // CREATE: If no server found, Create & prepare a new server
-  elseif (empty($chef_node)){
     
-    // @TODO: Allow flavor to be chosen
-    drush_log("[DEVUDO] Chef node not found with name:$server_fqdn. Creating server...", 'warning');
+    // If the error is NOT object not found, there was a more serious error
+    if (strpos($chef_node, 'ERROR: The object you are looking for could not be found') !== 0){
+      drush_log('[DEVUDO] Something went wrong with knife:', 'error');
+      drush_log($chef_node, 'error');
+      return;
+    }
+    
+    // CREATE: If no server found, Create & prepare a new server
+    drush_log($chef_node, 'warning');
+    drush_log("[DEVUDO] Creating server...", 'ok');
+    
     
     // CREATE THE SERVER!
     $data = shop_create_server($server_fqdn, $attributes);
@@ -191,8 +195,8 @@ function shop_provision_verify_server() {
   }
   // UPDATE: If a server was found, we will update it's attributes
   else {
-    
-    drush_log("[DEVUDO] Chef node found with name:$server_fqdn " . $chef_node->automatic->ipaddress, 'ok');
+    $ip = $chef_node->automatic->ipaddress;
+    drush_log("[DEVUDO] Chef node found with name:$server_fqdn $ip Preparing attributes...", 'ok');
     
     // Save new json data to file
     $attributes_json = json_encode($attributes);
@@ -200,8 +204,8 @@ function shop_provision_verify_server() {
     
     // Sync file to server
     // Use IP in case something is wrong with DNS
-    if (!empty($chef_node->automatic->ipaddress)){
-      $host = $chef_node->automatic->ipaddress;
+    if (!empty($ip)){
+      $host = $ip;
     }
     else {
       $host = $server_fqdn;
@@ -213,12 +217,13 @@ function shop_provision_verify_server() {
     // Run chef-client to update the server itself.
     $chef_client_cmd = "sudo /usr/bin/chef-client -j attributes.json";
     $chef_client_cmd_exec = escapeshellarg($chef_client_cmd);
-    drush_log("[DEVUDO] Running chef-client on $server_fqdn:", 'notice');
+    drush_log("[DEVUDO] Running chef-client on $server_fqdn:", 'ok');
     shop_exec_interactive("knife ssh name:$server_fqdn -x devudo $chef_client_cmd_exec -a ipaddress");
   }
   
   // EVERYTHING BELOW HAPPENS WHETHER THE SERVER IS NEWLY CREATED OR NOT.
   // Get chef node data from chef server
+  drush_log("[DEVUDO] Reloading server data from chef server for $server_fqdn:", 'ok');
   $chef_node = shop_get_server($server_fqdn);
   
   // If we have the IP, save it here
@@ -226,12 +231,9 @@ function shop_provision_verify_server() {
   $ips = array();
   
   if (!empty($chef_node->automatic->ipaddress)){
-    drush_log("[DEVUDO] IP address for $server_fqdn loaded from chief.devudo.com: $chef_node->automatic->ipaddress", 'ok');
-    
-    $ips[] = $chef_node->automatic->ipaddress;
-    $task->ref->ip_addresses[] = array($chef_node->automatic->ipaddress);
-    
-    
+    $ip = $chef_node->automatic->ipaddress;
+    drush_log("[DEVUDO] IP address for $server_fqdn loaded from chief.devudo.com: $ip", 'ok');
+    $ips[] = $ip;
   }
   // $ipaddress is returned from the server create process.  If we are testing,
   // $chef_node might not exist, so this is here mostly for debugging or if something
@@ -321,7 +323,7 @@ function shop_exec_interactive($command, $label = "EXEC"){
  * Helpful Exec
  */
 function shop_exec($command, $label = "EXEC"){
-  drush_log("[$label] Running: $command");
+  drush_log("[$label] Running: $command", "debug");
   drush_shell_exec($command);
 }
 
