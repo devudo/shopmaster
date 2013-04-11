@@ -127,6 +127,8 @@ function shop_provision_verify_server() {
     else {
       $host = $server_fqdn;
     }
+    
+    // @TODO: This line implies that aegir already has ssh access to devudo@host
     shop_exec("scp $json_path devudo@$host:~/attributes.json");
 
     // Run chef-client to update the server itself.
