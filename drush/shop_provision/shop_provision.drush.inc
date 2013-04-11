@@ -113,7 +113,7 @@ function shop_provision_verify_server() {
   // UPDATE: If a server was found, we will update it's attributes
   else {
     
-    drush_log("[DEVUDO] Chef node found with name:$server_fqdn", 'ok');
+    drush_log("[DEVUDO] Chef node found with name:$server_fqdn " . $chef_node->automatic->ipaddress, 'ok');
     
     // Save new json data to file
     $attributes_json = json_encode($attributes);
@@ -121,9 +121,10 @@ function shop_provision_verify_server() {
     
     // Sync file to server
     // Use IP in case something is wrong with DNS
-    if (!empty($task->ref->ip_addresses)){
-      $host = array_pop($task->ref->ip_addresses);
-    } else {
+    if (!empty($chef_node->automatic->ipaddress)){
+      $host = $chef_node->automatic->ipaddress;
+    }
+    else {
       $host = $server_fqdn;
     }
     shop_exec("scp $json_path devudo@$host:~/attributes.json");
@@ -227,7 +228,7 @@ function shop_exec_interactive($command, $label = "EXEC"){
  */
 function shop_exec($command, $label = "EXEC", $command_label = "KNIFE", $output = 'string'){
   drush_log("[$label] Running: $command");
-  drush_shell_exec(array($command), TRUE);
+  drush_shell_exec($command, TRUE);
   $lines = drush_shell_exec_output();
   foreach ($lines as $line){
     drush_log("[$command_label] $line");
@@ -272,23 +273,29 @@ function shop_create_server($server_fqdn, $attributes = array()){
   $run_list = ($role)? "role[$role]": "";
   $options = ($run_list)? "-r $run_list": "";
   $options .= " --flavor $rackspace_flavor ";
-  $lines = shop_exec("knife rackspace server create $options --server-name $server_fqdn --image 5cebb13a-f783-4f8c-8058-c4182c724ccd -Fjson -j $attributes_json", "KNIFE rackspace", "CHEF", 'array');
+  $lines = shop_exec("knife rackspace server create $options --server-name $server_fqdn --image 5cebb13a-f783-4f8c-8058-c4182c724ccd -Fjson -j $attributes_json", "KNIFE CREATE", "EXEC", 'array');
   
+  drush_log('PRINT R LINES: ' . print_r($lines, 1), 'error');
   // Detect an error:
   if (strpos($lines[0], 'ERROR') === 0 || strpos($lines[0], 'FATAL') === 0){
     drush_log('Error from $ knife rackspace server create: '. $lines[0], 'error');
     return NULL;
   }
   
-  // We are grabbing this here because, surprisingly, chef doesn't store the rackspace ID
-  $rackspace_instance_id = str_replace('Instance ID: ', '', $lines[0]);
-  
-  // Make sure run list is applied.
-  shop_exec("knife node run-list add $server_fqdn $run_list");
- 
-  // @TODO confirm the server exists with a knife node show.
-  shop_exec("knife node show $server_fqdn");
-  
+  if (strpos($lines[0], 'Instance ID: ') === 0 ){
+    // We are grabbing this here because, surprisingly, chef doesn't store the rackspace ID
+    $rackspace_instance_id = str_replace('Instance ID: ', '', $lines[0]);
+  } else {
+    $rackspace_instance_id = NULL;
+  }
+
+  if ($rackspace_instance_id){
+    // Make sure run list is applied.
+    shop_exec("knife node run-list add $server_fqdn $run_list");
+   
+    // @TODO confirm the server exists with a knife node show.
+    shop_exec("knife node show $server_fqdn");
+  }
   return $rackspace_instance_id;
 }
 
