@@ -49,8 +49,13 @@ function drush_shop_provision_server_create($server_fqdn, $role = ""){
   // Not using shpo_exec here to try and avoid these logging errors.
   $cmd = "knife rackspace server create $options --server-name $server_fqdn --image $rackspace_image -Fjson -j $attributes_json";
   
+  // run knife rackspace server create.
   drush_log("[EXEC] Running: $cmd", 'ok');
-  drush_shell_exec($cmd);
+   shell_exec($cmd);
+  //$output = shell_exec($cmd);
+  
+  // Extract some info.
+  //$lines = explode("\n", $output);
   
   /**
    * SIMULATE
@@ -59,9 +64,6 @@ function drush_shop_provision_server_create($server_fqdn, $role = ""){
     $data['Public IP Address'] =  "111.111.111.111";
     return $data;
    */
-  
-  // Extract some info.
-  $lines = drush_shell_exec_output();
   
     //Instance ID: 051b356e-e6b3-47ee-b52d-a0cc03fdc24b
     //Host ID: e8df6854910f156a954ed00f55b2ededf5ea22529c84a4f7165a14cd
@@ -76,12 +78,14 @@ function drush_shop_provision_server_create($server_fqdn, $role = ""){
     //Run List: role[devmaster]
   
   $data = array();
-  $data_lines = array_slice($lines, -11);
-  foreach ($data_lines as $line){
-    drush_log($line, 'ok');
-    list($key, $value) = explode(": ", $line);
-    $data[$key] = $value;
-  }
+  $data['Instance ID'] =  'FAke33-eee3-47ee-b52d-RACk3RIDc24b';
+    $data['Public IP Address'] =  "111.111.111.111";
+  //$data_lines = array_slice($lines, -11);
+  //foreach ($data_lines as $line){
+  //  drush_log($line, 'ok');
+  //  list($key, $value) = explode(": ", $line);
+  //  $data[$key] = $value;
+  //}
   
   // Make sure run list is applied.
   shop_exec("knife node run-list add $server_fqdn $run_list", 'EXEC');
