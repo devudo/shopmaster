@@ -51,11 +51,10 @@ function drush_shop_provision_server_create($server_fqdn, $role = ""){
   
   // run knife rackspace server create.
   drush_log("[EXEC] Running: $cmd", 'ok');
-   shell_exec($cmd);
-  //$output = shell_exec($cmd);
+  drush_shell_exec($cmd);
   
   // Extract some info.
-  //$lines = explode("\n", $output);
+  $lines = drush_shell_exec_output();
   
   /**
    * SIMULATE
@@ -78,14 +77,12 @@ function drush_shop_provision_server_create($server_fqdn, $role = ""){
     //Run List: role[devmaster]
   
   $data = array();
-  $data['Instance ID'] =  'FAke33-eee3-47ee-b52d-RACk3RIDc24b';
-    $data['Public IP Address'] =  "111.111.111.111";
-  //$data_lines = array_slice($lines, -11);
-  //foreach ($data_lines as $line){
-  //  drush_log($line, 'ok');
-  //  list($key, $value) = explode(": ", $line);
-  //  $data[$key] = $value;
-  //}
+  $data_lines = array_slice($lines, -11);
+  foreach ($data_lines as $line){
+    drush_log($line, 'ok');
+    list($key, $value) = explode(": ", $line);
+    $data[$key] = $value;
+  }
   
   // Make sure run list is applied.
   shop_exec("knife node run-list add $server_fqdn $run_list", 'EXEC');
@@ -288,7 +285,7 @@ function shop_provision_verify_server() {
     drush_log("[DEVUDO] IP address for $server_fqdn NOT FOUND from chief.devudo.com, but we got it from the knife rackspace server create: $ipaddress", 'ok');
     $ips[] = $ipaddress;
   }
-
+  
   
   // if we got IPs, save them now.
   if (!empty($ips)){
@@ -428,11 +425,16 @@ function shop_create_server($server_fqdn, $attributes = array()){
   $attributes_json = json_encode($attributes);
 
   drush_log("[DEVUDO] Running: drush server-create $server_fqdn $role --rackspace_flavor $rackspace_flavor --attributes=$attributes_json");
+  
+  $args[] = $server_fqdn;
+  $args[] = $role;
+  $options['rackspace_flavor'] = $rackspace_flavor;
+  $options['attributes'] = $attributes_json;
+  
+  // Invoking new process.
   drush_set_option('rackspace_flavor', $rackspace_flavor);
   drush_set_option('attributes', $attributes_json);
   $data = drush_shop_provision_server_create($server_fqdn, $role);
-  
-  
   return $data;
 }
 
