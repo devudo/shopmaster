@@ -1,4 +1,10 @@
 <?php
 
-// This file is deprecated and can be removed.
-// Please remove include_once('shop_servers.features.inc') in shop_servers.module as well.
+/**
+ * Implementation of hook_views_api().
+ */
+function shop_servers_views_api() {
+  return array(
+    'api' => '2',
+  );
+}
