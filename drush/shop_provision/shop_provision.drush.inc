@@ -110,7 +110,11 @@ function drush_shop_provision_server_create($server_fqdn, $role = ""){
  * we can ONLY create servers from http://shop.devudo.com/node/add/server
  *
  * 
+ * @NOTE!!! IF you use drush_HOOK_post_hosting_task() , the task will appear to
+ * complete in the front-end, but will still continue saving entries to the task
+ * log!!
  *
+ * hook_post_hosting_TASK_TYPE_task($task, $data)
  */
 function drush_shop_provision_pre_hosting_task() {
   $task = &drush_get_context('HOSTING_TASK');
