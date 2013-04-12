@@ -87,6 +87,9 @@ function shop_hosting_nodeapi_server_load(&$node) {
   
   // PHP Memory Limit
   $node->attributes->php['tuneable']['memory_limit'] = $node->field_chef_php_memory_limit[0]['value'];
+  
+  // NewRelic Key
+  $node->attributes->newrelic['server_monitoring']['license'] = $node->field_attr_newrelic_apikey[0]['value'];
 }
 
 /**
