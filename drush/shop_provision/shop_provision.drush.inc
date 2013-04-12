@@ -91,6 +91,7 @@ function drush_shop_provision_server_create($server_fqdn, $role = ""){
 
 /**
  * Implements drush_HOOK_pre_COMMAND
+ *   for drush hosting-task
  *
  * $task is available.
  * d() is server.
