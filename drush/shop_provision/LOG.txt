@@ -1,0 +1,100 @@
+aegir@shopmaster:~$ knife rackspace server create --flavor 3 --server-name whygodwhyforeal --image 5cebb13a-f783-4f8c-8058-c4182c724ccd -Fjson -j '{"devudo":{"users":{"admin":"","devudo":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC8UpLLPjxgnHMYoKL1GVo36MFUJ9wnIIPFlwZDrI\/0AMdS6Xih437Owqvello+1hOUHQg0PkMNtNw8r30rwHtKtibiwW86zWOrP4WpaI2JViWav9FyuZOxyNMmDyVritUAdzd6Rn88ql9ZpwK9VkbeMdkgjhWNqqcDXigHLcjBUCdCb25wSz4AwlhX64VshO2l2TQtvd4l+jvM62vLZlQdQ1W6tuVIgWxfNw7VillUyKI6rcU8cHSW3TQrOJGRUXs6zldhVuzUr5\/6FR+sCc3EALAc1BEK+iasRHQiZEhHHKq3+ccFAtRGam0AYJg88miRJL43sVlimxBVUYMPTaMz aegir@salesmaster"},"rackspace_flavor":"3","chef_role":"devmaster"},"aegir":{"client_email":"jon@thinkdrop.net","authorized_keys":""},"php":{"tuneable":{"memory_limit":"128M"}}}'
+Instance ID: ed35f4c5-a657-4927-89f5-4095d21dd391
+Name: whygodwhyforeal
+Flavor: 1GB Standard Instance
+Image: Ubuntu 12.04 LTS (Precise Pangolin)
+
+Waiting server........s.. 
+Public DNS Name: 166-78-1-254.static.cloud-ips.com
+Public IP Address: 166.78.1.254
+Private IP Address: 10.181.15.113
+Password: whGyTT62RaRD
+
+Waiting for sshddone
+Bootstrapping Chef on 166.78.1.254
+166.78.1.254 --2013-04-12 00:54:19--  http://opscode.com/chef/install.sh
+166.78.1.254 Resolving opscode.com (opscode.com)... 
+166.78.1.254 184.106.28.82
+166.78.1.254 
+166.78.1.254 Connecting to opscode.com (opscode.com)|184.106.28.82|:80... 
+166.78.1.254 connected.
+166.78.1.254 HTTP request sent, awaiting response... 
+166.78.1.254 301 Moved Permanently
+166.78.1.254 Location: http://www.opscode.com/chef/install.sh [following]
+166.78.1.254 --2013-04-12 00:54:19--  http://www.opscode.com/chef/install.sh
+166.78.1.254 Resolving www.opscode.com (www.opscode.com)... 
+166.78.1.254 184.106.28.82
+166.78.1.254 
+166.78.1.254 Reusing existing connection to opscode.com:80.
+166.78.1.254 HTTP request sent, awaiting response... 
+166.78.1.254 200 OK
+166.78.1.254 Length: 
+166.78.1.254 6470
+166.78.1.254  (6.3K)
+166.78.1.254  [application/x-sh]
+166.78.1.254 Saving to: `STDOUT'
+166.78.1.254 
+166.78.1.254 
+166.78.1.254  0% [                                       ] 0           --.-K/s              
+166.78.1.254 
+166.78.1.254 100%[======================================>] 6,470       --.-K/s   in 0.03s   
+166.78.1.254 
+166.78.1.254 
+166.78.1.254 2013-04-12 00:54:19 (237 KB/s) - written to stdout [6470/6470]
+166.78.1.254 
+166.78.1.254 Downloading Chef 10.14.2 for ubuntu...
+166.78.1.254 Installing Chef 10.14.2
+166.78.1.254 Selecting previously unselected package chef.
+166.78.1.254 (Reading database ... 
+(Reading database ... 5%
+(Reading database ... 10%
+(Reading database ... 15%
+(Reading database ... 20%
+(Reading database ... 25%
+(Reading database ... 30%
+(Reading database ... 35%
+(Reading database ... 40%
+(Reading database ... 45%
+(Reading database ... 50%
+(Reading database ... 55%
+(Reading database ... 60%
+(Reading database ... 65%
+(Reading database ... 70%
+(Reading database ... 75%
+(Reading database ... 80%
+(Reading database ... 85%
+(Reading database ... 90%
+(Reading database ... 95%
+(Reading database ... 100%
+(Reading database ... 
+166.78.1.254 51499 files and directories currently installed.)
+166.78.1.254 Unpacking chef (from .../chef_10.14.2_amd64.deb) ...
+166.78.1.254 Setting up chef (10.14.2-1.ubuntu.11.04) ...
+166.78.1.254 Thank you for installing Chef!
+166.78.1.254 [2013-04-12T00:54:27+00:00] INFO: *** Chef 10.14.2 ***
+166.78.1.254 [2013-04-12T00:54:28+00:00] INFO: Client key /etc/chef/client.pem is not present - registering
+166.78.1.254 [2013-04-12T00:54:29+00:00] INFO: HTTP Request Returned 404 Not Found: Cannot load node whygodwhyforeal
+166.78.1.254 [2013-04-12T00:54:29+00:00] INFO: Setting the run_list to [] from JSON
+166.78.1.254 [2013-04-12T00:54:29+00:00] INFO: Run List is []
+166.78.1.254 [2013-04-12T00:54:29+00:00] INFO: Run List expands to []
+166.78.1.254 [2013-04-12T00:54:29+00:00] INFO: Starting Chef Run for whygodwhyforeal
+166.78.1.254 [2013-04-12T00:54:29+00:00] INFO: Running start handlers
+166.78.1.254 [2013-04-12T00:54:29+00:00] INFO: Start handlers complete.
+166.78.1.254 [2013-04-12T00:54:29+00:00] INFO: Loading cookbooks []
+166.78.1.254 [2013-04-12T00:54:29+00:00] WARN: Node whygodwhyforeal has an empty run list.
+166.78.1.254 [2013-04-12T00:54:29+00:00] INFO: Chef Run complete in 0.339434124 seconds
+166.78.1.254 [2013-04-12T00:54:29+00:00] INFO: Running report handlers
+166.78.1.254 [2013-04-12T00:54:29+00:00] INFO: Report handlers complete
+
+Instance ID: ed35f4c5-a657-4927-89f5-4095d21dd391
+Host ID: 5dbf7d939d657afcebdc82ad5ff9754a3ef532ec03f26ec38e46b435
+Name: whygodwhyforeal
+Flavor: 1GB Standard Instance
+Image: Ubuntu 12.04 LTS (Precise Pangolin)
+Public DNS Name: 166-78-1-254.static.cloud-ips.com
+Public IP Address: 166.78.1.254
+Private IP Address: 10.181.15.113
+Password: whGyTT62RaRD
+Environment: _default
+You have new mail in /var/mail/aegir
+aegir@shopmaster:~$ 
