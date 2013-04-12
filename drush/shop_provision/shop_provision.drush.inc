@@ -77,7 +77,7 @@ function drush_shop_provision_server_create($server_fqdn, $role = ""){
     //Run List: role[devmaster]
   
   $data = array();
-  $data_lines = array_slice($lines, -11);
+  $data_lines = array_slice($lines, -12);
   foreach ($data_lines as $line){
     drush_log($line, 'ok');
     list($key, $value) = explode(": ", $line);
@@ -419,7 +419,7 @@ function shop_get_server($node_name, $options = ' -l'){
  * Helper to create a server from scratch.  Runs knife rackspace server create 
  */
 function shop_create_server($server_fqdn, $attributes = array()){
-  $role = ''; //$attributes->devudo['chef_role'];
+  $role = $attributes->devudo['chef_role'];
   $rackspace_flavor = $attributes->devudo['rackspace_flavor'];
 
   // If no rackspace flavor it is doomed
