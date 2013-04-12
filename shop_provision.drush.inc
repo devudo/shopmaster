@@ -151,7 +151,7 @@ function shop_get_server($node_name, $options = ' -l'){
  */
 function shop_create_server($server_fqdn, $attributes = array()){
   $attributes_json = escapeshellarg(json_encode($attributes));
-  $lines = shop_exec("knife rackspace server create -r 'role[devmaster]' --server-name $server_fqdn --image 5cebb13a-f783-4f8c-8058-c4182c724ccd --flavor 2 -Fjson -j $attributes_json", "KNIFE", "CHEF", 'array');
+  $lines = shop_exec("knife rackspace server create  --server-name $server_fqdn --image 5cebb13a-f783-4f8c-8058-c4182c724ccd --flavor 2 -Fjson -j $attributes_json", "KNIFE", "CHEF", 'array');
   
   // @TODO: Will the first line always be our instance id?
   $rackspace_instance_id = str_replace('Instance ID: ', '', $lines[0]);
