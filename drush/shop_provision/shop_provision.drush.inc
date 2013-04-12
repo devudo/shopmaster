@@ -92,6 +92,48 @@ function drush_shop_provision_server_create($server_fqdn, $role = ""){
   return $data;
 }
 
+/**
+ * Implements drush_HOOK_pre_COMMAND
+ *
+ * $task is available.
+ * d() is server.
+ * PROPERTIES SET TO d() here are persisted to the other "task" hooks, but NOT
+ * to the provision-XXX hooks. Basically, NO drush contexts are persisted from here
+ * to the provision-XXX hooks!!!
+ *
+ * @TODO:  If we could save our attributes to the drush alias (server context) we
+ * would then be able to run drush @server_NAME provison-x directly from the backend.
+ *
+ * Aegir sucks here.  I cannot determine how to save data to the server context.
+ * We should seriously fix aegir here.  You cannot save things to the drush alias
+ * (server context) without a provision service file.
+ *
+ * We can't fire drush_set_error() and make the task fail until this happens, and we
+ * can't run provision-verify from the terminal and create a server.  Meaning, currently,
+ * we can ONLY create servers from http://shop.devudo.com/node/add/server
+ *
+ * 
+ *
+ */
+function drush_shop_provision_pre_hosting_task() {
+  $task = &drush_get_context('HOSTING_TASK');
+  if ($task->ref->type == 'server') {
+    
+    if ($task->task_type == 'verify'){
+      // Create or update the server.
+      shop_provision_verify_server();
+      
+    } elseif ($task->task_type == 'delete'){
+      // DESTROY the server.
+      if (shop_provision_delete_server()){
+        $task->ref->status = 0;
+        $task->ref->no_verify = TRUE;
+        node_save($task->ref);
+      }
+    }
+  }
+}
+
 /*********
  * TASKS *
  ********/
