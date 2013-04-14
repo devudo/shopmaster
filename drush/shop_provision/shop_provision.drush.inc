@@ -85,6 +85,8 @@ function drush_shop_provision_server_create($server_fqdn, $role = ""){
   }
   
   // Make sure run list is applied.
+  
+  // @TODO: Can the DNS Queue do this?
   shop_exec("knife node run-list add $server_fqdn $run_list", 'EXEC');
   return $data;
 }
@@ -116,14 +118,17 @@ function drush_shop_provision_server_create($server_fqdn, $role = ""){
  * log!!
  *
  * hook_post_hosting_TASK_TYPE_task($task, $data)
- */
+ *
+ * 4-14: Took this away in favor of shop_hosting.drush.inc.  We must have the
+ * rackspace data queue, so lets just go build that.
+ 
 function drush_shop_provision_pre_hosting_task() {
   $task = &drush_get_context('HOSTING_TASK');
   if ($task->ref->type == 'server') {
     
     if ($task->task_type == 'verify'){
       // Create or update the server.
-      shop_provision_verify_server();
+      //shop_provision_verify_server();
       
     } elseif ($task->task_type == 'delete'){
       // DESTROY the server.
@@ -135,6 +140,7 @@ function drush_shop_provision_pre_hosting_task() {
     }
   }
 }
+ */
 
 /*********
  * TASKS *
@@ -221,8 +227,15 @@ function shop_provision_verify_server() {
     
     // CREATE THE SERVER!
     $data = shop_create_server($server_fqdn, $attributes);
-    $rackspace_id = $data['Instance ID'];
-    $ipaddress =  $data['Public IP Address'];
+    
+    // This worked on my localhost aegir install. NOT in a virtualbox, not in a
+    // rackspace cloud... it was always causing MYSQLserver gone away.
+    
+    // One day maybe we can fix this... but in a sense, its not needed
+    // The rackspace data queue will update all of this information for us.
+
+    //$rackspace_id = $data['Instance ID'];
+    //$ipaddress =  $data['Public IP Address'];
     
     if (!empty($rackspace_id)){
       drush_log("[DEVUDO] Server Created! $ipaddress  $rackspace_id", 'ok');
@@ -437,6 +450,9 @@ function shop_create_server($server_fqdn, $attributes = array()){
   $options['attributes'] = $attributes_json;
   
   // Invoking new process.
+  
+  //drush_invoke_process('@none', 'server-create', array($server_fqdn, $role),  array('rackspace_flavor' => $rackspace_flavor, 'attributes'=> $attributes_json));
+                                           
   drush_set_option('rackspace_flavor', $rackspace_flavor);
   drush_set_option('attributes', $attributes_json);
   $data = drush_shop_provision_server_create($server_fqdn, $role);
@@ -450,17 +466,3 @@ function shop_log_object($object, $name = '', $label = 'DEVUDO'){
   $object = print_r($object, 1);
   drush_log("[$label] $name => $object");
 }
-
-
-///**
-// * Saving  to $task->context_options['ip_addresses'] works!
-// */
-//function shop_provision_hosting_server_context_options(&$task) {
-//  
-//  drush_log("[DEVUDO] Shopmaster context options: " . $task->devudo_test, 'ok');
-//  
-//  $task->context_options['remote_host'] = $task->ref->title;
-//  $ip_list = _hosting_ip_list($task->ref->ip_addresses);
-//  $task->context_options['ip_addresses'] = sizeof($ip_list) ? implode(',', $ip_list) : 'null';
-//
-//}
