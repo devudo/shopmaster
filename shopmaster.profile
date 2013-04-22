@@ -12,15 +12,15 @@ function shopmaster_profile_modules() {
     /* core */ 'block', 'color', 'filter', 'help', 'menu', 'node', 'system', 'user',
     /* aegir contrib */ 'hosting', 'hosting_task', 'hosting_client', 'hosting_package', 'hosting_server', 'hosting_queue_runner',
     'install_profile_api' /* needs >= 2.1 */, 'jquery_ui', 'modalframe', 'admin_menu',
-    
+
     /* DEVUDO */
-    'shop_hosting', 
-    
+    'shop_hosting',
+
     /* Features */
     'shop_servers', 'shop_users',
-    
+
     /* other contrib */
-    'content', 'views', 'sshkey', 'features', 'adminrole',
+    'content', 'views', 'sshkey', 'features', 'adminrole', 'bakery',
   );
 }
 
