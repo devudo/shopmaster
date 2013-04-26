@@ -82,7 +82,9 @@ function drush_shop_provision_server_create($server_fqdn){
   }
   
   // Make sure run list is applied.
-  shop_exec("knife node run_list add $server_fqdn $run_list");
+  if ($run_list){
+    shop_exec("knife node run_list add $server_fqdn $run_list");
+  }
   return $data;
 }
 
