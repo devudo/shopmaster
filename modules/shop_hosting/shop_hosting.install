@@ -26,10 +26,10 @@ function shop_hosting_schema() {
 /**
  * Implementation of hook_uninstall().
  */
-function shop_hosting_install() {  
+function shop_hosting_install() {
   // Install schema.
   drupal_install_schema('shop_hosting');
-  
+
   // Set weight
   db_query("UPDATE {system} SET weight = 1 WHERE type = 'module' AND name = 'shop_hosting'");
 }
@@ -41,4 +41,15 @@ function shop_hosting_update_6000() {
   $ret = array();
   $ret[] = update_sql("UPDATE {system} SET weight = 1 WHERE type = 'module' AND name = 'shop_hosting'");
   return $ret;
+}
+
+/**
+ * Set up config parameters for bakery module
+ */
+function shop_hosting_update_6001() {
+  variable_set('bakery_is_master', 1);
+  $url = variable_get('install_url', '');
+  $host = parse_url($url);
+  variable_set('bakery_master', $host['host']);
+  module_disable(array('bakery'));
 }

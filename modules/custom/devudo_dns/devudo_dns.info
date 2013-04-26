@@ -1,0 +1,5 @@
+name = Devudo DNS
+description = Create DNS entries using the Rackspace API
+core = 6.x
+package = Devudo
+dependencies[] = hosting

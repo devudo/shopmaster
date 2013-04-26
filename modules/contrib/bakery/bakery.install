@@ -1,0 +1,121 @@
+<?php
+
+function bakery_schema() {
+  return array(
+    'bakery_user' => array(
+      'description' => 'Keep track of UID on subsites, master only.',
+      'fields' => array(
+        'uid' => array(
+          'description' => 'User ID on master site.',
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ),
+        'slave' => array(
+          'description' => 'Slave site.',
+          'type' => 'varchar',
+          'length' => 128,
+          'not null' => TRUE,
+        ),
+        'slave_uid' => array(
+          'description' => 'User ID on slave site.',
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ),
+      ),
+      'primary key' => array('uid', 'slave'),
+    ),
+  );
+}
+
+function bakery_install() {
+  drupal_install_schema('bakery');
+}
+
+function bakery_uninstall() {
+  drupal_uninstall_schema('bakery');
+  variable_del('bakery_key');
+  variable_del('bakery_domain');
+  variable_del('bakery_is_master');
+  variable_del('bakery_master');
+  variable_del('bakery_slaves');
+  variable_del('bakery_supported_fields');
+  variable_del('bakery_help_text');
+  variable_del('bakery_freshness');
+  variable_del('bakery_cookie_extension');
+}
+
+/**
+ * Delete aliases we no longer needed.
+ */
+function bakery_update_6001() {
+  $ret = array();
+
+  if (module_exists('path')) {
+    db_query("DELETE FROM {url_alias} WHERE src = 'bakery' AND dst IN ('user/login', 'user/register')");
+  }
+
+  return $ret;
+}
+
+/**
+ * Better query syntax.
+ */
+function bakery_update_6002() {
+  $ret = array();
+
+  if (module_exists('path')) {
+    db_query("DELETE FROM {url_alias} WHERE src = 'bakery' AND dst IN ('user/login', 'user/register')");
+  }
+
+  return $ret;
+}
+
+/**
+ * Add {bakery_user}.
+ */
+function bakery_update_6003() {
+  $return = array();
+
+  db_create_table($return, 'bakery_user', array(
+    'description' => 'Keep track of UID on subsites, master only.',
+    'fields' => array(
+      'uid' => array(
+        'description' => 'User ID on master site.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'slave' => array(
+        'description' => 'Slave site.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+      'slave_uid' => array(
+        'description' => 'User ID on slave site.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('uid', 'slave'),
+  ));
+
+  return $return;
+}
+
+/**
+ * Delete stray stub accounts left over by bug http://drupal.org/node/1033360.
+ */
+function bakery_update_6004() {
+  $return = array();
+
+  $result = db_query("SELECT uid FROM {users} WHERE init LIKE 'bakery_temp/%' AND access = 0");
+  while ($account = db_fetch_object($result)) {
+    user_delete(array(), $account->uid);
+  }
+
+  return $return;
+}

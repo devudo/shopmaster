@@ -1,0 +1,11 @@
+name = Bakery
+description = Provides single-sign-on support across second-level domains.
+core = 6.x
+php = 5.1.2
+
+; Information added by drupal.org packaging script on 2013-02-13
+version = "6.x-2.0-alpha4"
+core = "6.x"
+project = "bakery"
+datestamp = "1360785318"
+
