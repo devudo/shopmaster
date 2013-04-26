@@ -20,7 +20,7 @@ function shopmaster_profile_modules() {
     'shop_servers', 'shop_users',
 
     /* other contrib */
-    'content', 'views', 'sshkey', 'features', 'adminrole', 'bakery',
+    'content', 'views', 'sshkey', 'features', 'adminrole'
   );
 }
 
