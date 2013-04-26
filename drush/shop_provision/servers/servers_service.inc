@@ -36,10 +36,8 @@ class provisionService_devudo_servers extends provisionService_devudo {
       
     $server_fqdn = d()->remote_host;
     $role = $this->server->role;
-   
-    // @TODO: Save these to the context/drush alias
     $rackspace_flavor = $this->server->rackspace_flavor;  // 2
-    $rackspace_image = $this->server->rackspace_image;  //e4dbdba7-b2a4-4ee5-8e8f-4595b6d694ce
+    $rackspace_image = $this->server->rackspace_image; 
     $attributes = $this->server->attributes_json;
     
     // Look for this chef node on Chef Server
@@ -57,15 +55,14 @@ class provisionService_devudo_servers extends provisionService_devudo {
       // So, create a new server.
       drush_log("[DEVUDO] Chef Node not found. Creating server...", 'ok');
       
-      drush_log("[DEVUDO] Running: drush server-create $server_fqdn $role --rackspace_flavor=$rackspace_flavor --rackspace_image=$rackspace_image", 'ok'); 
+      drush_log("[DEVUDO] Running: drush server-create $server_fqdn --role=$role --rackspace_flavor=$rackspace_flavor --rackspace_image=$rackspace_image --attributes=$attributes", 'ok'); 
 
       drush_set_option('rackspace_flavor', $rackspace_flavor);
       drush_set_option('rackspace_image', $rackspace_image);
       drush_set_option('role', $role);
+      drush_set_option('attributes', $attributes);
         
-////  $attributes_json = json_encode($attributes);
-////  drush_set_option('attributes', $attributes_json);
-      //$data = drush_shop_provision_server_create($server_fqdn);
+      $data = drush_shop_provision_server_create($server_fqdn);
       
       shop_log_object($data, 'data from server create');
 
