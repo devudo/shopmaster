@@ -29,21 +29,26 @@ $cloud = new \OpenCloud\Rackspace(AUTHURL,
 printf("Connecting to DNS...\n");
 $dns = $cloud->DNS();
 
-
-// This gets a \OpenCloud\Collection, but I don't know how to use
-// it to get the domain ID...
-// but the ID for devudo.com is 3428941
-// $list = $dns->DomainList(array('name' => 'devudo.com'));
+// Get a list of domains named "devudo.com" (there will only be one.)
+$dlist = $dns->DomainList(array('name' => 'devudo.com'));
+while($domain = $dlist->Next()) {
+	printf("\n%s [%s] %s\n",
+		$domain->Name(), $domain->emailAddress, $domain->id);
+  // Grab the domain ID
+  if ($domain->Name() == 'devudo.com'){
+    $domain_id =   $domain->id;
+  }
+}
 
 // Gets a Domain object
 //$domain = $dns->Domain(3428941);
-$domain = $dns->Domain(3428941);
+$domain = $dns->Domain($domain_id);
 
 // Create main domain record
 $record = $domain->Record();
 $resp = $record->Create(array(
 	'type' => 'A',
-	'name' => 'mynewsite.devudo.com',
+	'name' => 'testdomains.devudo.com',
 	'ttl' => 600,
 	'data' => '10.10.10.10'
 ));
@@ -53,7 +58,7 @@ $resp->WaitFor("COMPLETED", 300, 'showme', 1);
 // Create wildcard domain record
 $resp = $record->Create(array(
 	'type' => 'A',
-	'name' => '*.mynewsite.devudo.com',
+	'name' => '*.testdomains.devudo.com',
 	'ttl' => 600,
 	'data' => '10.10.10.10'
 ));
