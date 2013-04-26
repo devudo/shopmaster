@@ -82,7 +82,7 @@ function shop_hosting_nodeapi_server_load(&$node) {
   
   // Flavor, Role, etc.
   $node->attributes->devudo['rackspace_flavor'] = $node->field_rackspace_flavor[0]['value'];
-  $node->attributes->devudo['rackspace_flavor'] = $node->field_rackspace_flavor[0]['value'];
+  $node->attributes->devudo['rackspace_image'] = variable_get('devudo_rackspace_image' , 'e4dbdba7-b2a4-4ee5-8e8f-4595b6d694ce');
   $node->attributes->devudo['chef_role'] = $node->field_chef_role[0]['value'];
   
   // PHP Memory Limit
