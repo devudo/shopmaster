@@ -1,0 +1,46 @@
+<?php
+
+function devudo_dns_hosting_queues() {
+  $items['dns'] = array(
+    'name' => t('DNS queue'),
+    'description' => t('Create DNS entries with the Rackspace API'),
+   // 'total_items' => devshop_pull_get_platforms(10),
+    'frequency' => strtotime("1 minute", 0),
+    'singular' => t('project'),
+    'plural' => t('projects'),
+  );
+  return $items;
+}
+
+function devudo_dns_queue($count) {
+  require_once "lib/php-opencloud.php";
+
+  define('AUTHURL', 'https://identity.api.rackspacecloud.com/v2.0/');
+  define('USERNAME', 'careernerd');
+  define('TENANT', 'devudo');
+  define('APIKEY', 'e93596076f1a3bd404d6a8b790b8a96b');
+
+  // establish our credentials
+  $connection = new \OpenCloud\Rackspace(AUTHURL,
+  array( 'username' => USERNAME,
+  'apiKey' => APIKEY ));
+
+  // now, connect to the compute service
+  $compute = $connection->Compute('cloudServersOpenStack', 'DFW');
+
+  // list all servers
+  $servers= array();
+  $slist = $compute->ServerList();
+  while($server = $slist->Next()) {
+    $servers[$name] = $server->Name();
+    $servers[$name][$status] = $server->status;
+    $servers[$name][$ip] = $server->ip();
+  }
+
+ foreach ($servers as $host_name => $info) {
+   $server_ip = db_result(db_query("select ip_address from {hosting_ip_addresses} h inner join {node} n on n.nid = h.nid WHERE n.title = %s", $host_name));
+   if(!$server_ip) {
+     //do dns lookup
+   }
+ }
+}
