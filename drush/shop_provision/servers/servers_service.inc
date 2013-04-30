@@ -19,6 +19,7 @@ class provisionService_devudo_servers extends provisionService_devudo {
     parent::init_server();
     
     // Get war path and solr_homes_path
+    $this->server->rackspace_id = drush_get_option('rackspace_id', '');
     $this->server->rackspace_image = drush_get_option('rackspace_image', '');
     $this->server->rackspace_flavor = drush_get_option('rackspace_flavor', '');
     $this->server->attributes_json = drush_get_option('attributes_json', '');
@@ -83,6 +84,7 @@ class provisionService_devudo_servers extends provisionService_devudo {
   
   function config_data($config = null, $class = null) {
     $data = parent::config_data($config, $class);
+    $data['rackspace_id'] = $this->server->rackspace_id;
     $data['rackspace_image'] = $this->server->rackspace_image;
     $data['rackspace_flavor'] = $this->server->rackspace_flavor;
     $data['role'] = $this->server->role;
@@ -92,6 +94,7 @@ class provisionService_devudo_servers extends provisionService_devudo {
   
   static function option_documentation() {
     return array(
+      '--rackspace_id' => 'The unique rackspace server ID.',
       '--rackspace_image' => 'The rackspace server image.',
       '--rackspace_flavor' => 'The rackspace server flavor.',
       '--role' => 'The chef role.',
