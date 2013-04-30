@@ -48,5 +48,8 @@ function shop_hosting_post_hosting_delete_task($task, $data){
     $task->ref->status = 0;
     $task->ref->no_verify = TRUE;
     node_save($task->ref);
+    
+    // Remove the hosting context name
+    db_query("DELETE FROM {hosting_context} WHERE nid=%d", $task->ref->nid);
   }
 }
