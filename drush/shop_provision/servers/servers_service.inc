@@ -44,6 +44,11 @@ class provisionService_devudo_servers extends provisionService_devudo {
     
     $ips = array();
     
+    // If no rackspace info, bail
+    if (empty($role)){
+      return;
+    }
+    
     // Look for this chef node on Chef Server
     drush_log("[DEVUDO] Looking for chef node $server_fqdn on chef server", 'ok');
     $chef_node = shop_get_server($server_fqdn);
