@@ -47,6 +47,6 @@ function shop_hosting_post_hosting_delete_task($task, $data){
     // Unpublish the node.
     $task->ref->status = 0;
     $task->ref->no_verify = TRUE;
-    //node_save($task->ref);
+    node_save($task->ref);
   }
 }
