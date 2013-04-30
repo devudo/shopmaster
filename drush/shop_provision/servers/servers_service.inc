@@ -75,9 +75,33 @@ class provisionService_devudo_servers extends provisionService_devudo {
     }
     // If we got a server node...
     else {
+      $ip = $chef_node->automatic->ipaddress;
       drush_log("[DEVUDO] Chef node found with name:$server_fqdn ip:$ip Preparing attributes...", 'ok');
       
       // @TODO: Copy the attributes file and run chef-client again.
+      // Save new json data to file
+      
+      $json_path = "/tmp/$server_fqdn.json";
+      $attributes_json = json_encode($attributes);
+      file_put_contents($json_path, $attributes_json);
+      
+      // Sync file to server
+      // Use IP in case something is wrong with DNS
+      if (!empty($ip)){
+        $host = $ip;
+      }
+      else {
+        $host = $server_fqdn;
+      }
+      
+      // @TODO: This line implies that aegir already has ssh access to devudo@host
+      shop_exec("scp $json_path devudo@$host:~/attributes.json");
+  
+      // Run chef-client to update the server itself.
+      $chef_client_cmd = "sudo /usr/bin/chef-client -j attributes.json";
+      $chef_client_cmd_exec = escapeshellarg($chef_client_cmd);
+      drush_log("[DEVUDO] Running chef-client on $server_fqdn:", 'ok');
+      shop_exec_interactive("knife ssh name:$server_fqdn -x devudo $chef_client_cmd_exec -a ipaddress");
     
     }
     parent::verify_server_cmd();
