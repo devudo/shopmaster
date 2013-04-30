@@ -95,6 +95,12 @@ function shop_hosting_nodeapi_server_load(&$node) {
   // NewRelic 
   $node->attributes->newrelic['server_monitoring']['license'] = (string) $node->field_attr_newrelic_apikey[0]['value'];
   $node->attributes->newrelic['application_monitoring']['license'] = (string) $node->field_attr_newrelic_apikey[0]['value'];
+  
+  // ONLY SHOP.DEVUDO.COM servers should get to set DNS.
+  global $base_url;
+  if ($base_url != 'shop.devudo.com'){
+    $node->attributes->is_vagrant = TRUE;
+  }
 }
 
 /**
