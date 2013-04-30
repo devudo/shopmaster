@@ -34,7 +34,7 @@ function shop_hosting_post_hosting_verify_task($task, $data){
   
   $task->ref->ip_addresses = $data['context']['ip_addresses'];
   
-  drush_log("Trying to save node with $task->ref->rackspace_id $task->ref->ip_addresses", 'ok');
+  drush_log("Trying to save node with {$task->ref->rackspace_id} {$task->ref->ip_addresses}", 'ok');
   node_save($task->ref);
 }
 
