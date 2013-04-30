@@ -41,6 +41,8 @@ class provisionService_devudo_servers extends provisionService_devudo {
     $rackspace_image = $this->server->rackspace_image; 
     $attributes = $this->server->attributes_json;
     
+    $ips = array();
+    
     // Look for this chef node on Chef Server
     drush_log("[DEVUDO] Looking for chef node $server_fqdn on chef server", 'ok');
     $chef_node = shop_get_server($server_fqdn);
@@ -64,19 +66,20 @@ class provisionService_devudo_servers extends provisionService_devudo {
       drush_set_option('attributes', $attributes);
         
       $data = drush_shop_provision_server_create($server_fqdn);
+      $ips[] = $data['Public IP Address'];
+      $ips[] = $data['Private IP Address'];
       
-      shop_log_object($data, 'data from server create');
-
+      // Save for shop_hosting_post_hosting_verify_task()
+      drush_set_option('rackspace_id', $data['Instance ID']);
+      drush_set_option('ip_addresses', $ips);
     }
     // If we got a server node...
     else {
-      $ip = $chef_node->automatic->ipaddress;
-      drush_log("[DEVUDO] Chef node found with name:$server_fqdn $ip Preparing attributes...", 'ok');
+      drush_log("[DEVUDO] Chef node found with name:$server_fqdn ip:$ip Preparing attributes...", 'ok');
+      
+      // @TODO: Copy the attributes file and run chef-client again.
     
     }
-    
-    //
-    //shop_exec('knife node list');
     parent::verify_server_cmd();
   }
   
