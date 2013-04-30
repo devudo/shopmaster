@@ -66,32 +66,41 @@ function shop_hosting_get_servers($uid) {
       $servers[$node->nid] = $node->title;
     }
   }
+  else {
+    // find CCK userreference field tables
+    // search through them for matching user ids and load those nodes
+    $types = content_types();
   
-  // find CCK userreference field tables
-  // search through them for matching user ids and load those nodes
-  $types = content_types();
-
-  // Find the table and columns to search through, if the same
-  // table comes up in more than one content type, we only need
-  // to search it once.
-  $search_tables = array();
-  foreach ($types as $type_name => $type) {
-    foreach ($type['fields'] as $field) {
-      // Only add tables when reverse link has been selected.
-      if ($field['type'] == 'userreference' && !empty($field['widget']['reverse_link'])) {
-        $db_info = content_database_info($field);
-        $search_tables[$db_info['table']][] = $db_info['columns']['uid']['column'];
+    // Find the table and columns to search through, if the same
+    // table comes up in more than one content type, we only need
+    // to search it once.
+    $search_tables = array();
+    foreach ($types as $type_name => $type) {
+      foreach ($type['fields'] as $field) {
+        // Only add tables when reverse link has been selected.
+        if ($field['type'] == 'userreference' && !empty($field['widget']['reverse_link'])) {
+          $db_info = content_database_info($field);
+          $search_tables[$db_info['table']][] = $db_info['columns']['uid']['column'];
+        }
+      }
+    }
+    foreach ($search_tables as $table => $columns) {
+      foreach ($columns as $column) {
+        $ids = db_query(db_rewrite_sql("SELECT DISTINCT(n.nid), n.title, n.type FROM {node} n LEFT JOIN {". $table ."} f ON n.vid = f.vid WHERE f.". $column ."=". $account->uid. " AND n.status = 1"));
+        while ($data = db_fetch_object($ids)) {
+          if ($data->type == 'server'){
+            $servers[$data->nid] = $data->title;
+          }
+        }
       }
     }
   }
-  foreach ($search_tables as $table => $columns) {
-    foreach ($columns as $column) {
-      $ids = db_query(db_rewrite_sql("SELECT DISTINCT(n.nid), n.title, n.type FROM {node} n LEFT JOIN {". $table ."} f ON n.vid = f.vid WHERE f.". $column ."=". $account->uid. " AND n.status = 1"));
-      while ($data = db_fetch_object($ids)) {
-        if ($data->type == 'server'){
-          $servers[$data->nid] = $data->title;
-        }
-      }
+  
+  // Filter out servers without a role
+  foreach ($servers as $nid => $title){
+    $server = node_load($nid);
+    if (empty($server->field_chef_role[0]['value'])){
+      unset($servers[$nid]);
     }
   }
   return $servers;
