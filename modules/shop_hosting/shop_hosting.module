@@ -20,6 +20,10 @@ function shop_hosting_perm(){
  */
 function shop_hosting_nodeapi_server_load(&$node) {
   
+  // Only load special things if this server has a role.
+  if (empty($node->field_chef_role[0]['value'])){
+    return;
+  }
   // Build attributes object
   $node->attributes = new stdClass;
   $uids = array();
