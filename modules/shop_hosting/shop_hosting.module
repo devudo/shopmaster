@@ -98,7 +98,7 @@ function shop_hosting_nodeapi_server_load(&$node) {
   
   // ONLY SHOP.DEVUDO.COM servers should get to set DNS.
   global $base_url;
-  if ($base_url != 'http://shop.devudo.com'){
+  if ($base_url != 'http://shop.devudo.com' || $base_url != 'https://shop.devudo.com'){
     $node->attributes->is_vagrant = TRUE;
   }
 }
