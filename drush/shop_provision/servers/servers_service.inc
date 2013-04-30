@@ -34,7 +34,7 @@ class provisionService_devudo_servers extends provisionService_devudo {
    */
   function verify_server_cmd() {
     drush_log('[DEVUDO] Verifying Server ' . d()->remote_host, 'ok');
-      
+  
     $server_fqdn = d()->remote_host;
     $role = $this->server->role;
     $rackspace_flavor = $this->server->rackspace_flavor;  // 2
@@ -78,9 +78,6 @@ class provisionService_devudo_servers extends provisionService_devudo {
       // Save for shop_hosting_post_hosting_verify_task()
       drush_set_option('rackspace_id', $data['Instance ID']);
       drush_set_option('ip_addresses', $ips);
-      
-      // Run provision-verify again to save ips and rackspace ID.
-      provision_backend_invoke(d()->name, 'provision-verify');
     }
     // If we got a server node... run chef-client to update it.
     else {
