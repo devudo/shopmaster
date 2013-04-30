@@ -183,7 +183,7 @@ function shop_hosting_nodeapi_server_insert(&$node){
  */
 function shop_hosting_nodeapi_server_update(&$node){
   if (!empty($node->rackspace_id)){
-    if ($node->devudo_needs_insert){
+    if (isset($node->devudo_needs_insert)){
       shop_hosting_nodeapi_server_insert($node);
     } else {
       db_query('UPDATE {devudo_server_info} SET rackspace_id = "%s" WHERE nid = %d', $node->rackspace_id, $node->nid);
