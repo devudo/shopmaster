@@ -100,6 +100,8 @@ function shop_hosting_nodeapi_server_load(&$node) {
   global $base_url;
   if ($base_url != 'http://shop.devudo.com' || $base_url != 'https://shop.devudo.com'){
     $node->attributes->is_vagrant = TRUE;
+  } else {
+    $node->attributes->is_vagrant = FALSE;
   }
 }
 
