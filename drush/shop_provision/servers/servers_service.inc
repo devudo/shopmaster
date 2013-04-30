@@ -73,7 +73,7 @@ class provisionService_devudo_servers extends provisionService_devudo {
       drush_set_option('rackspace_id', $data['Instance ID']);
       drush_set_option('ip_addresses', $ips);
     }
-    // If we got a server node...
+    // If we got a server node... run chef-client to update it.
     else {
       $ip = $chef_node->automatic->ipaddress;
       drush_log("[DEVUDO] Chef node found with name:$server_fqdn ip:$ip Preparing attributes...", 'ok');
