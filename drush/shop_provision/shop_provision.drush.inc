@@ -51,16 +51,20 @@ function drush_shop_provision_server_create($server_fqdn){
   $cmd = "knife rackspace server create $options --server-name $server_fqdn --image $rackspace_image -Fjson -j $attributes_json";
   
   // run knife rackspace server create.
-  $lines = shop_exec_return($cmd);
+  //$lines = shop_exec_return($cmd);
   
   /**
    * SIMULATE
-    drush_log("[EXEC] JUST KIDDING!  Moving on...", 'ok');
-    $data['Instance ID'] =  'FAke33-eee3-47ee-b52d-RACk3RIDc24b';
-    $data['Public IP Address'] =  "111.111.111.111";
-    return $data;
    */
+  //$cmd =  "knife-rackspace-create-simulate $server_fqdn $role";
+  $lines = shop_exec_return($cmd);
   
+    //drush_log("[EXEC] JUST KIDDING!  Moving on...", 'ok');
+    //$data['Instance ID'] =  'FAke33-eee3-47ee-b52d-RACk3RIDc24b';
+    //$data['Public IP Address'] =  "111.111.111.111";
+    //$data['Private IP Address'] =  "111.111.111.111";
+    //return $data;
+    //
     //Instance ID: 051b356e-e6b3-47ee-b52d-a0cc03fdc24b
     //Host ID: e8df6854910f156a954ed00f55b2ededf5ea22529c84a4f7165a14cd
     //Name: devmaster.localhost
@@ -82,7 +86,7 @@ function drush_shop_provision_server_create($server_fqdn){
   }
   
   // Make sure run list is applied.
-  if ($run_list){
+  if ($run_list && $data['Environment'] != '_fake'){
     shop_exec("knife node run_list add $server_fqdn $run_list");
   }
   return $data;
