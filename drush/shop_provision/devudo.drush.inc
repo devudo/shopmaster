@@ -39,9 +39,6 @@ function shop_exec_return($command, $output = 'array'){
   $lines = array();
   drush_log("[DEVUDO] Running: $command", "ok");
   exec($command, $lines);
-  foreach ($lines as $line){
-    //drush_log("[EXEC] $line", 'ok');
-  }
   return $output == 'string'? implode("\n", $lines): $lines;
 }
 /**
