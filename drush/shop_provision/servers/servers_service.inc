@@ -44,11 +44,6 @@ class provisionService_devudo_servers extends provisionService_devudo {
     
     $ips = array();
     
-    // If no rackspace info, bail
-    if (empty($role)){
-      return;
-    }
-    
     // Look for this chef node on Chef Server
     drush_log("[DEVUDO] Looking for chef node $server_fqdn on chef server", 'ok');
     $chef_node = shop_get_server($server_fqdn);
@@ -84,33 +79,30 @@ class provisionService_devudo_servers extends provisionService_devudo {
       $ip = $chef_node->automatic->ipaddress;
       drush_log("[DEVUDO] Chef node found with name:$server_fqdn ip:$ip Preparing attributes...", 'ok');
       
-      if (!empty($role)){
-          
-        // @TODO: Copy the attributes file and run chef-client again.
-        // Save new json data to file
-        
-        $json_path = "/tmp/$server_fqdn.json";
-        $attributes_json = $attributes;
-        file_put_contents($json_path, $attributes_json);
-        
-        // Sync file to server
-        // Use IP in case something is wrong with DNS
-        if (!empty($ip)){
-          $host = $ip;
-        }
-        else {
-          $host = $server_fqdn;
-        }
-        
-        // @TODO: This line implies that aegir already has ssh access to devudo@host
-        shop_exec("scp $json_path devudo@$host:~/attributes.json");
-    
-        // Run chef-client to update the server itself.
-        $chef_client_cmd = "sudo /usr/bin/chef-client -j attributes.json";
-        $chef_client_cmd_exec = escapeshellarg($chef_client_cmd);
-        drush_log("[DEVUDO] Running chef-client on $server_fqdn:", 'ok');
-        shop_exec("knife ssh name:$server_fqdn -x devudo $chef_client_cmd_exec -a ipaddress");
+      // @TODO: Copy the attributes file and run chef-client again.
+      // Save new json data to file
+      
+      $json_path = "/tmp/$server_fqdn.json";
+      $attributes_json = $attributes;
+      file_put_contents($json_path, $attributes_json);
+      
+      // Sync file to server
+      // Use IP in case something is wrong with DNS
+      if (!empty($ip)){
+        $host = $ip;
       }
+      else {
+        $host = $server_fqdn;
+      }
+      
+      // @TODO: This line implies that aegir already has ssh access to devudo@host
+      shop_exec("scp $json_path devudo@$host:~/attributes.json");
+  
+      // Run chef-client to update the server itself.
+      $chef_client_cmd = "sudo /usr/bin/chef-client -j attributes.json";
+      $chef_client_cmd_exec = escapeshellarg($chef_client_cmd);
+      drush_log("[DEVUDO] Running chef-client on $server_fqdn:", 'ok');
+      shop_exec("knife ssh name:$server_fqdn -x devudo $chef_client_cmd_exec -a ipaddress");
     }
     parent::verify_server_cmd();
   }
