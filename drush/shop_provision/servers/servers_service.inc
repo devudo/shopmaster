@@ -15,7 +15,6 @@ class provisionService_devudo_servers extends provisionService_devudo {
    * Also it runs many times, for some reason.
    */
   function init_server() {
-    //drush_log('[DEVUDO] provisionService_devudo_servers::init_server()', 'ok');
     parent::init_server();
     
     // Get war path and solr_homes_path
@@ -25,7 +24,6 @@ class provisionService_devudo_servers extends provisionService_devudo {
     $this->server->attributes_json = drush_get_option('attributes_json', '');
     $this->server->role = drush_get_option('role', '');
     
-//    $this->server->rackspace_id = '';
   }
   
   /**
