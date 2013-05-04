@@ -1,0 +1,11 @@
+echo "Instance ID: 0fF4k3F4k3-F4k3-F4k3-F4k3F4k3F4k3"
+echo "Host ID: e8df6854910f156a954ed00f55b2ededf5ea22529c84a4f7165a14cd"
+echo "Name: $1"
+echo "Flavor: 512MB Standard Instance"
+echo 'Image: Ubuntu 12.04 LTS (Precise Pangolin)'
+echo "Public DNS Name: 3.3.3.3.static.cloud-ips.com"
+echo "Public IP Address: 3.3.3.3"
+echo "Private IP Address: 10.3.3.3"
+echo "Password: xxxxxxxxxxx"
+echo "Environment: _fake"
+echo "Run List: role[$1]"
