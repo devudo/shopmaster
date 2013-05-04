@@ -27,8 +27,11 @@ class provisionService_devudo_servers extends provisionService_devudo {
   }
   
   /**
-   * This is run immeidately after provision saves the server config.
-   * (near the end)
+   * This is run immediately after provision saves the server config files.
+   *
+   *  
+   *   Provision client home path /var/aegir/clients is writable.
+   *   [DEVUDO] Verifying Server anotherfaker
    */
   function verify_server_cmd() {
     drush_log('[DEVUDO] Verifying Server ' . d()->remote_host, 'ok');
