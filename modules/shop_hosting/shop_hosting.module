@@ -97,6 +97,9 @@ function shop_hosting_nodeapi_server_load(&$node) {
     $node->attributes->newrelic['server_monitoring']['license'] = (string) $node->field_attr_newrelic_apikey[0]['value'];
     $node->attributes->newrelic['application_monitoring']['license'] = (string) $node->field_attr_newrelic_apikey[0]['value'];  
   }
+  
+  // Provisioned by
+  $node->attributes->devudo['provisioned_by'] = $_SERVER['SERVER_NAME'];
 }
 
 /**
